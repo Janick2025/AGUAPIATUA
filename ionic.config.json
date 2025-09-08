@@ -1,0 +1,7 @@
+{
+  "name": "mi-ionic-capacitor-app",
+  "integrations": {
+    "capacitor": {}
+  },
+  "type": "react-vite"
+}
