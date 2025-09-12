@@ -2,6 +2,10 @@ import { Redirect, Route } from 'react-router-dom';
 import { IonApp, IonRouterOutlet, setupIonicReact } from '@ionic/react';
 import { IonReactRouter } from '@ionic/react-router';
 import Home from './pages/Home';
+import Bienvenida from './pages/Bienvenida';
+import Login from './pages/Login';
+import FacturaFinal from './pages/FacturaFinal';
+import ComprobantePedido from './pages/ComprobantePedido';
 
 /* Core CSS required for Ionic components to work properly */
 import '@ionic/react/css/core.css';
@@ -39,11 +43,42 @@ const App: React.FC = () => (
   <IonApp>
     <IonReactRouter>
       <IonRouterOutlet>
+        <Route exact path="/bienvenida">
+          <Bienvenida />
+        </Route>
+        <Route exact path="/login">
+          <Login />
+        </Route>
         <Route exact path="/home">
           <Home />
         </Route>
+        <Route exact path="/factura-final" render={({ location, history }) => {
+          // Extraer datos del pedido desde location.state
+          const state = location.state as any || {};
+          return (
+            <FacturaFinal
+              address={state.address || ''}
+              payment={state.payment || ''}
+              cart={state.cart || []}
+              totalPrice={state.totalPrice || 0}
+              onBack={() => history.goBack()}
+            />
+          );
+        }} />
+        <Route exact path="/comprobante-pedido" render={({ location, history }) => {
+          const state = location.state as any || {};
+          return (
+            <ComprobantePedido
+              address={state.address || ''}
+              payment={state.payment || ''}
+              cart={state.cart || []}
+              totalPrice={state.totalPrice || 0}
+              onBack={() => history.push('/home')}
+            />
+          );
+        }} />
         <Route exact path="/">
-          <Redirect to="/home" />
+          <Redirect to="/bienvenida" />
         </Route>
       </IonRouterOutlet>
     </IonReactRouter>

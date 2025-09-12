@@ -1,0 +1,87 @@
+/* Fondo claro en esta pantalla (adiós negro) */
+.comprobante-bg {
+  --background: #F5F7FB;   /* gris muy claro, agradable */
+  padding: 16px;
+}
+
+/* Contenedor centrado y legible */
+.comprobante-wrap {
+  max-width: 520px;
+  margin: 0 auto;
+}
+
+/* Títulos */
+.comprobante-title {
+  text-align: center;
+  color: #0ea5e9;         /* cyan amable */
+  font-weight: 800;
+  font-size: 22px;
+  margin: 8px 0 14px;
+}
+
+/* Tarjetas blancas suaves */
+.panel {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 16px;
+  box-shadow: 0 8px 24px rgba(15,23,42,0.06);
+  padding: 12px;
+  margin-bottom: 12px;
+}
+.panel-title {
+  margin: 0 0 8px;
+  color: #1f2937;
+  font-size: 0.95rem;
+  font-weight: 700;
+}
+
+/* Fila de producto */
+.item {
+  display: grid;
+  grid-template-columns: 52px 1fr;
+  gap: 10px;
+  align-items: center;
+  padding: 8px;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  background: #f8fafc;
+  margin-bottom: 8px;
+}
+.item-thumb {
+  width: 52px;
+  height: 52px;
+  object-fit: contain;
+  background: #fff;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+}
+.item-main { display: flex; flex-direction: column; gap: 2px; }
+.item-name { font-weight: 700; color: #0f172a; }
+.item-meta { color: #475569; font-size: 0.92rem; }
+
+/* Total destacado tipo “pill” */
+.total-pill {
+  background: linear-gradient(90deg, #60a5fa, #38bdf8);
+  color: #fff;
+  font-weight: 800;
+  border-radius: 12px;
+  padding: 12px;
+  text-align: right;
+  margin-top: 8px;
+}
+
+/* Botón primario moderno */
+.btn-primary {
+  --background: #3b82f6;
+  --background-hover: #2563eb;
+  --color: #fff;
+  --border-radius: 12px;
+  font-weight: 700;
+}
+
+/* Responsive fino para móviles */
+@media (max-width: 480px) {
+  .comprobante-bg { padding: 12px; }
+  .item { grid-template-columns: 46px 1fr; }
+  .item-thumb { width: 46px; height: 46px; }
+}

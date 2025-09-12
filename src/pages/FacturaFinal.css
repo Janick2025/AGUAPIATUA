@@ -1,0 +1,142 @@
+/* ===========================
+   Paleta azul (celestes)
+=========================== */
+:root{
+  --sky-50:  #E0F2FE;
+  --sky-100: #BAE6FD;
+  --sky-200: #7DD3FC;
+  --sky-300: #38BDF8;
+  --sky-400: #0EA5E9;
+  --sky-500: #3B82F6; /* Primary */
+  --ink-900:#0F172A;  /* Texto principal */
+  --ink-600:#475569;  /* Texto secundario */
+  --paper:  #F5F7FB;  /* Fondo */
+}
+
+/* ===========================
+   Fondo & cabecera
+=========================== */
+ion-toolbar[color="primary"]{
+  --background: linear-gradient(90deg, var(--sky-500), var(--sky-300));
+  --color: #fff;
+}
+
+/* Fondo del contenido con “agua” sutil */
+.factura-final-bg{
+  --background:
+    radial-gradient(1400px 220px at 50% -120px, rgba(56,189,248,.18), transparent 60%),
+    linear-gradient(180deg, rgba(224,242,254,.65), var(--paper));
+  color: var(--ink-900);
+  /* padding ya lo aporta .ion-padding del TSX */
+}
+
+/* Si usas la clase watermark, intensifica el patrón (no requiere imagen) */
+.factura-final-bg.watermark{
+  --background:
+    radial-gradient(1200px 200px at 20% -80px, rgba(96,165,250,.14), transparent 60%),
+    radial-gradient(1200px 200px at 80% -60px, rgba(14,165,233,.12), transparent 60%),
+    linear-gradient(180deg, rgba(224,242,254,.65), var(--paper));
+}
+
+/* ===========================
+   Títulos y textos
+=========================== */
+.factura-final-bg h2{
+  color: var(--sky-500);
+  font-weight: 800;
+  text-shadow: 0 2px 10px rgba(56,189,248,.18);
+}
+.factura-final-bg h3{
+  color: var(--ink-900);
+  font-weight: 700;
+  padding-left: 10px;
+  border-left: 4px solid var(--sky-300);
+  margin-top: 6px;
+}
+
+/* ===========================
+   Lista de productos (mejoras visuales)
+   (No hay clases en el TSX: solo añadimos toques suaves)
+=========================== */
+.factura-final-bg img{
+  box-shadow: 0 4px 12px rgba(2,132,199,.12);
+  border: 1px solid rgba(59,130,246,.12);
+}
+
+.factura-final-bg div[style*="display: flex"][style*="align-items: center"][style*="padding-bottom"]{
+  border-bottom: 1px dashed rgba(14,165,233,.28) !important; /* sobreescribe #eee inline */
+}
+
+/* ===========================
+   Inputs & selects (azules)
+=========================== */
+.factura-final-bg input[type="text"],
+.factura-final-bg select{
+  background: #fff;
+  border: 1px solid var(--sky-300) !important;  /* override inline #ccc */
+  border-radius: 10px !important;
+  box-shadow: 0 2px 10px rgba(56,189,248,.12);
+  color: var(--ink-900);
+}
+.factura-final-bg input[type="text"]::placeholder{
+  color: #7aa6c9;
+}
+.factura-final-bg input[type="text"]:focus,
+.factura-final-bg select:focus{
+  outline: none;
+  border-color: var(--sky-400) !important;
+  box-shadow: 0 0 0 3px rgba(14,165,233,.25);
+}
+
+/* ===========================
+   Botones (azules)
+=========================== */
+/* “Confirmar pedido” (TSX usa color="success"): lo forzamos a azul */
+.factura-final-bg ion-button[color="success"]{
+  --background: linear-gradient(90deg, var(--sky-500), var(--sky-300));
+  --background-hover: var(--sky-400);
+  --background-activated: var(--sky-400);
+  --color: #fff;
+  --border-radius: 12px;
+  font-weight: 800;
+  letter-spacing: .3px;
+  box-shadow: 0 10px 24px rgba(56,189,248,.28);
+}
+
+/* “Volver” (outline) en celeste */
+.factura-final-bg ion-button[fill="outline"]{
+  --border-color: var(--sky-300);
+  --color: var(--sky-500);
+  --background: rgba(255,255,255,.6);
+  --border-radius: 12px;
+  font-weight: 700;
+}
+
+/* Quitar bordes/aros indeseados y redondear pill si quieres */
+.factura-final-bg ion-button::part(native){
+  border: none;
+  outline: none;
+}
+
+/* ===========================
+   Total y tipografía fina
+=========================== */
+.factura-final-bg > div[style*="text-align: right"]{
+  color: var(--ink-900);
+}
+.factura-final-bg .total-pill{
+  background: linear-gradient(90deg, var(--sky-500), var(--sky-300));
+  color: #fff;
+  font-weight: 800;
+  border-radius: 12px;
+  padding: 12px;
+  text-align: right;
+}
+
+/* ===========================
+   Responsive
+=========================== */
+@media (max-width: 480px){
+  .factura-final-bg img{ width: 48px !important; height: 48px !important; }
+}
+
