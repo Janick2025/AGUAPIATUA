@@ -1,0 +1,168 @@
+/* ===== Paleta verde pastel ===== */
+:root{
+  --mint-50:#F2FBF7; --mint-100:#E6F7F0; --mint-200:#CCEFE1;
+  --mint-300:#AFE5D0; --mint-400:#86D8B8; --mint-500:#56C9A0; --mint-600:#36B188;
+  --ink-900:#0F172A; --ink-700:#334155;
+
+  /* Fondo/texto global → BLANCO puro */
+  --ion-background-color:#ffffff;
+  --ion-background-color-rgb:255,255,255;
+  --ion-text-color:#0F172A;
+  --ion-text-color-rgb:15,23,42;
+}
+
+/* Fondo blanco por defecto en toda la app */
+ion-content{ --background: var(--ion-background-color); }
+ion-page{ background:#fff; }
+
+/* Mantén blanco aunque el SO esté en modo oscuro */
+@media (prefers-color-scheme: dark){
+  :root{
+    --ion-background-color:#ffffff;
+    --ion-background-color-rgb:255,255,255;
+    --ion-text-color:#0F172A;
+    --ion-text-color-rgb:15,23,42;
+  }
+}
+
+/* ===== Solo Login ===== */
+ion-content.login-bg{ --background:#fff !important; }
+
+/* Tarjeta del formulario */
+.login-container{
+  width:min(460px, 92vw);
+  margin:18px auto;
+  padding:14px 12px 20px;
+  background:rgba(255,255,255,.75);
+  border:1px solid var(--mint-200);
+  border-radius:16px;
+  box-shadow:0 16px 40px rgba(86,201,160,.18);
+  backdrop-filter:saturate(150%) blur(8px);
+  animation: cardIn .28s ease-out both;
+}
+@keyframes cardIn{
+  from{ transform: translateY(8px) scale(.985); opacity:0; }
+  to{   transform: translateY(0)   scale(1);    opacity:1; }
+}
+
+/* Toolbar verde (usa className="login-toolbar" en IonToolbar) */
+ion-toolbar.login-toolbar{
+  --background: linear-gradient(90deg, var(--mint-500), var(--mint-400));
+  --color:#fff;
+  box-shadow: 0 6px 16px rgba(86,201,160,.22);
+}
+
+/* Segment (roles) */
+.login-container ion-segment{
+  --background: rgba(255,255,255,.7);
+  border:1px solid var(--mint-200);
+  border-radius:14px;
+  margin:6px 8px 14px;
+  backdrop-filter: blur(4px);
+}
+.login-container ion-segment::part(indicator){
+  background: linear-gradient(90deg, var(--mint-500), var(--mint-400));
+  border-radius:10px;
+  box-shadow:0 8px 22px rgba(86,201,160,.28);
+  transition: transform .18s ease, width .18s ease;
+}
+.login-container ion-segment-button{
+  --color: var(--ink-700);
+  --color-checked:#fff;
+  font-weight:700;
+  min-height:38px;
+}
+
+/* Inputs outline */
+ion-input.custom-login-input{
+  --background: rgba(255,255,255,.88);
+  --color: var(--ink-900);
+  --placeholder-color:#7f8a96;
+  --padding-start:14px;
+  --padding-top:12px;
+  --padding-bottom:12px;
+
+  border:1px solid var(--mint-200);
+  border-radius:12px;
+  margin:12px 8px;
+  box-shadow:0 6px 18px rgba(134,216,184,.18);
+  transition: box-shadow .2s ease, transform .12s ease, border-color .2s ease;
+}
+ion-input.custom-login-input.ion-focused{
+  --highlight-color-focused: var(--mint-500);
+  border-color: var(--mint-400);
+  box-shadow:0 10px 26px rgba(86,201,160,.26);
+  transform: translateY(-1px);
+}
+ion-input.custom-login-input.has-error{ border-color:#ef4444; }
+
+/* ===== Ojo mostrar/ocultar contraseña (absoluto, movible) ===== */
+.pwd-wrap{ position:relative; }
+
+/* reserva espacio a la derecha del input contraseña para el ojito */
+ion-input.login-input-password{
+  --padding-end: 56px; /* ajusta si cambias el tamaño del botón ojo */
+}
+
+/* Usa variables para mover el ojo sin tocar CSS:
+   --pwd-right: distancia desde el borde derecho (px)
+   --pwd-offset-y: ajuste fino vertical (px, positivo hacia abajo) */
+.pwd-toggle{
+  position:absolute;
+  inset-inline-end: var(--pwd-right, 16px);
+  inset-block-start: 50%;
+  transform: translateY(calc(-50% + var(--pwd-offset-y, 0px)));
+  width:36px; height:36px;
+  border-radius:10px; border:none; cursor:pointer;
+  background: rgba(255,255,255,.95);
+  display:grid; place-items:center;
+  box-shadow: 0 4px 14px rgba(86,201,160,.15);
+  transition: box-shadow .18s ease, filter .18s ease, transform .12s ease;
+  z-index: 10;
+}
+.pwd-toggle ion-icon{ font-size:20px; color: var(--mint-600); }
+.pwd-toggle:hover{
+  filter: brightness(1.03);
+  box-shadow: 0 6px 18px rgba(86,201,160,.22);
+  transform: translateY(calc(-50% + var(--pwd-offset-y, 0px) - 1px));
+}
+
+/* Mensajes de error */
+.err-text{ display:block; margin:4px 12px 0 12px; font-size:.86rem; }
+
+/* Botón principal */
+ion-button.login-btn{
+  --background: linear-gradient(90deg, var(--mint-500), var(--mint-400));
+  --background-activated: var(--mint-600);
+  --border-radius:14px;
+  --padding-top:14px; --padding-bottom:14px;
+  --padding-start:22px; --padding-end:22px;
+  --box-shadow:0 12px 28px rgba(86,201,160,.30);
+  font-weight:800; letter-spacing:.3px;
+  margin:16px 8px 8px;
+  transition: transform .12s ease, filter .2s ease, box-shadow .2s ease;
+}
+ion-button.login-btn:hover{
+  filter: brightness(1.03);
+  transform: translateY(-1px);
+  --box-shadow: 0 14px 32px rgba(86,201,160,.36);
+}
+
+/* Acciones (recordarme / recuperar) */
+.login-actions{
+  display:flex; align-items:center; justify-content:space-between;
+  margin: 6px 8px 0;
+}
+.remember{
+  display:flex; align-items:center; gap:8px;
+  font-size:.95rem; color: var(--ink-700);
+}
+.login-container form{ margin-top: 4px; }
+
+/* Responsive */
+@media (max-width: 420px){
+  .login-container{ margin: 14px auto; }
+  .login-container ion-segment{ margin: 4px 6px 12px; }
+  ion-input.custom-login-input{ margin: 10px 6px; }
+  ion-button.login-btn{ margin: 14px 6px 8px; }
+}

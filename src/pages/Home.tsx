@@ -89,17 +89,7 @@ export default function Home() {
 
   return (
     <>
-      {/* Menú izquierdo (principal) */}
-      <IonMenu contentId="main-content" menuId="main-menu" side="start">
-        <IonHeader>
-          <IonToolbar className="menu-toolbar">
-            <IonTitle>Menú</IonTitle>
-          </IonToolbar>
-        </IonHeader>
-        <IonContent className="ion-padding">
-          Opciones del menú
-        </IonContent>
-      </IonMenu>
+
 
 
       {/* Contenido principal único */}
@@ -107,10 +97,7 @@ export default function Home() {
         {/* Header */}
         <IonHeader>
           <IonToolbar className="home-toolbar">
-            <IonButtons slot="start">
-              {/* Abre el menú izquierdo */}
-              <IonMenuButton menu="main-menu" />
-            </IonButtons>
+            {/* ...existing code... */}
 
             <IonTitle>
               Agua Piatua
@@ -122,10 +109,7 @@ export default function Home() {
               <IonIcon icon={cartOutline} className="header-cart-icon" />
             </IonButton>
 
-            <IonButtons slot="end">
-              {/* Abre el menú derecho (perfiles) */}
-              <IonMenuButton menu="profiles-menu" />
-            </IonButtons>
+            {/* ...existing code... */}
           </IonToolbar>
         </IonHeader>
 

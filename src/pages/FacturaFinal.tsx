@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { IonPage, IonHeader, IonToolbar, IonTitle, IonContent, IonButton } from '@ionic/react';
 import { useHistory } from 'react-router-dom';
@@ -13,10 +12,11 @@ interface FacturaFinalProps {
   onBack: () => void;
 }
 
-export default function FacturaFinal(props: FacturaFinalProps) {
+const FacturaFinal: React.FC<FacturaFinalProps> = (props) => {
   const { address: initialAddress, payment: initialPayment, cart, totalPrice, onBack } = props;
   const [address, setAddress] = useState(initialAddress || '');
   const [payment, setPayment] = useState(initialPayment || '');
+  const [comprobante, setComprobante] = useState<File | null>(null);
   const history = useHistory();
 
   return (
@@ -67,15 +67,36 @@ export default function FacturaFinal(props: FacturaFinalProps) {
           <option value="efectivo">Efectivo</option>
           <option value="transferencia">Transferencia</option>
         </select>
+        {payment === 'transferencia' && (
+          <div style={{ marginBottom: 12 }}>
+            <label style={{ fontWeight: 500, marginBottom: 6, display: 'block' }}>Sube tu comprobante de pago:</label>
+            <input
+              type="file"
+              accept="image/*"
+              onChange={e => setComprobante(e.target.files?.[0] || null)}
+              style={{ width: '100%', padding: 8, borderRadius: 6, border: '1px solid #ccc' }}
+            />
+          </div>
+        )}
+        {payment === 'transferencia' && comprobante && (
+          <div style={{ marginTop: 12 }}>
+            <h4 className="panel-title">Comprobante de pago</h4>
+            <img src={URL.createObjectURL(comprobante)} alt="Comprobante" style={{ maxWidth: '100%', maxHeight: 180, borderRadius: 8, border: '1px solid #eee' }} />
+          </div>
+        )}
         <IonButton
           expand="block"
           color="success"
-          disabled={!address || !payment}
+          disabled={!address || !payment || (payment === 'transferencia' && !comprobante)}
           style={{ marginBottom: 8 }}
           onClick={() => {
+            let comprobanteUrl = null;
+            if (payment === 'transferencia' && comprobante) {
+              comprobanteUrl = URL.createObjectURL(comprobante);
+            }
             history.push({
               pathname: '/comprobante-pedido',
-              state: { address, payment, cart, totalPrice }
+              state: { address, payment, cart, totalPrice, comprobanteUrl }
             });
           }}
         >
@@ -88,3 +109,5 @@ export default function FacturaFinal(props: FacturaFinalProps) {
     </IonPage>
   );
 }
+
+export default FacturaFinal;

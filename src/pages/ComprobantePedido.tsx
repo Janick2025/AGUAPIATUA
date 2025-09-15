@@ -10,10 +10,11 @@ interface ComprobantePedidoProps {
   payment: string; // 'efectivo' | 'transferencia' | ...
   cart: CartItem[];
   totalPrice: number;
+  comprobanteUrl?: string;
   onBack: () => void;
 }
 
-export default function ComprobantePedido({ address, payment, cart, totalPrice, onBack }: ComprobantePedidoProps) {
+export default function ComprobantePedido({ address, payment, cart, totalPrice, comprobanteUrl, onBack }: ComprobantePedidoProps) {
   const paymentLabel =
     payment === 'efectivo' ? 'Efectivo' :
     payment === 'transferencia' ? 'Transferencia' :
@@ -56,6 +57,14 @@ export default function ComprobantePedido({ address, payment, cart, totalPrice, 
             <h4 className="panel-title">Método de pago</h4>
             <div className="item-meta">{paymentLabel}</div>
           </div>
+
+          {payment === 'transferencia' && comprobanteUrl && (
+            <div style={{ marginTop: 18, padding: 12, border: '2px solid #4caf50', borderRadius: 12, background: '#f6fff6', textAlign: 'center' }}>
+              <h4 style={{ color: '#388e3c', marginBottom: 10 }}>Comprobante de transferencia</h4>
+              <img src={comprobanteUrl} alt="Comprobante de transferencia" style={{ maxWidth: '100%', maxHeight: 220, borderRadius: 8, border: '1.5px solid #4caf50', boxShadow: '0 2px 8px #c8e6c9' }} />
+              <div style={{ fontSize: '0.9rem', color: '#388e3c', marginTop: 8 }}>Verifica que la imagen corresponda a tu pago.</div>
+            </div>
+          )}
 
           <div className="total-pill">Total pagado: ${ totalPrice.toFixed(2) }</div>
              <div style={{ fontSize: '0.75rem', color: '#607d8b', textAlign: 'center', margin: '18px 0 0 0' }}>
