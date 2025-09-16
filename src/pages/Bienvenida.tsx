@@ -54,12 +54,7 @@ const Bienvenida: React.FC = () => {
 
       {/* Contenido principal */}
       <IonPage style={{ display: showContent ? 'block' : 'none' }}>
-        <IonHeader className="bienvenida-header">
-          <IonToolbar className="bienvenida-toolbar">
-            <IonTitle />
-          </IonToolbar>
-
-        </IonHeader>
+        
 
         <IonContent className="bienvenida-bg" fullscreen>
           {/* Burbujas flotantes */}

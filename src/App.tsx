@@ -6,6 +6,29 @@ import Bienvenida from './pages/Bienvenida';
 import Login from './pages/Login';
 import FacturaFinal from './pages/FacturaFinal';
 import ComprobantePedido from './pages/ComprobantePedido';
+import AdminDashboard from './pages/AdminDashboard';
+// Componente de ruta protegida
+const ProtectedRoute: React.FC<{ 
+  children: React.ReactNode; 
+  allowedUserTypes?: string[];
+  redirectTo?: string;
+}> = ({ children, allowedUserTypes = [], redirectTo = '/login' }) => {
+  const isAuthenticated = localStorage.getItem('isAuthenticated') === 'true';
+  const userType = localStorage.getItem('userType') || '';
+  if (!isAuthenticated) {
+    return <Redirect to={redirectTo} />;
+  }
+  if (allowedUserTypes.length > 0 && !allowedUserTypes.includes(userType)) {
+    if (userType === 'administrador') {
+      return <Redirect to="/admin-dashboard" />;
+    } else if (userType === 'vendedor') {
+      return <Redirect to="/vendedor-dashboard" />;
+    } else {
+      return <Redirect to="/home" />;
+    }
+  }
+  return <>{children}</>;
+};
 
 /* Core CSS required for Ionic components to work properly */
 import '@ionic/react/css/core.css';
@@ -50,7 +73,14 @@ const App: React.FC = () => (
           <Login />
         </Route>
         <Route exact path="/home">
-          <Home />
+          <ProtectedRoute>
+            <Home />
+          </ProtectedRoute>
+        </Route>
+        <Route exact path="/admin-dashboard">
+          <ProtectedRoute allowedUserTypes={['administrador']}>
+            <AdminDashboard />
+          </ProtectedRoute>
         </Route>
         <Route exact path="/factura-final" render={({ location, history }) => {
           // Extraer datos del pedido desde location.state
