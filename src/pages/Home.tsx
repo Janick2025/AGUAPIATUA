@@ -418,7 +418,7 @@ export default function Home() {
                 </div>
                 
                 <IonCardHeader>
-                  <IonCardTitle className="titulo" title={producto.nombre}>
+                  <IonCardTitle className="producto-nombre-principal" title={producto.nombre}>
                     {producto.nombre}
                   </IonCardTitle>
                 </IonCardHeader>
@@ -475,7 +475,7 @@ export default function Home() {
             <div className="cart-float-header">
               <div className="cart-title">
                 <IonIcon icon={cartOutline} />
-                Carrito de Compras
+                <span className="cart-title-text">Carrito de Compras</span>
                 {totalItems > 0 && (
                   <IonBadge color="light" style={{ marginLeft: '8px' }}>
                     {totalItems}
@@ -521,20 +521,18 @@ export default function Home() {
                 </div>
               ) : (
                 cart.map(item => (
-                  <div key={item.id} className="cart-row" style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '8px 0' }}>
+                  <div key={item.id} className="cart-row cart-float-horizontal">
                     <img 
                       src={item.imagen} 
                       alt={item.nombre} 
                       className="cart-thumb" 
-                      style={{ flexShrink: 0 }}
+                      style={{ flexShrink: 0, marginRight: '12px' }}
                     />
-                    <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 2 }}>
-                      <div className="cart-name producto-nombre" style={{ fontWeight: 600, fontSize: '1rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.nombre}</div>
-                      <div className="cart-price producto-precio" style={{ fontWeight: 700, fontSize: '0.95rem' }}>
-                        ${(Number(item.precio) * item.qty).toFixed(2)}
-                      </div>
-                    </div>
-                    <div className="cart-qty" style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                    <span className="cart-name producto-nombre" style={{ fontWeight: 600, fontSize: '1rem', marginRight: '24px' }}>{item.nombre}</span>
+                    <span className="cart-price producto-precio" style={{ fontWeight: 700, fontSize: '0.95rem', marginRight: '32px', marginLeft: '8px' }}>
+                      ${(Number(item.precio) * item.qty).toFixed(2)}
+                    </span>
+                    <div className="cart-qty" style={{ display: 'flex', alignItems: 'center', gap: 4, marginLeft: 'auto' }}>
                       <IonButton 
                         size="small" 
                         fill="outline" 

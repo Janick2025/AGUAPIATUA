@@ -26,7 +26,7 @@ const FacturaFinal: React.FC<FacturaFinalProps> = (props) => {
           <IonTitle>Factura Final</IonTitle>
         </IonToolbar>
       </IonHeader>
-      <IonContent className="ion-padding factura-final-bg watermark">
+  <IonContent className="ion-padding factura-final-bg watermark" style={{ background: 'linear-gradient(135deg, #0F172A 0%, #1E293B 20%, #0EA5E9 60%, #38BDF8 100%)', backgroundSize: '200% 200%' }}>
         <h2 style={{ textAlign: 'center', marginBottom: 18 }}>Detalle de productos</h2>
         <div style={{ marginBottom: 18 }}>
           {cart.length === 0 ? (

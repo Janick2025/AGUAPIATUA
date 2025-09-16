@@ -1,3 +1,98 @@
+/* Cuadro celeste con bordes redondeados para cada producto en el mini carrito flotante */
+.cart-row.cart-float-horizontal {
+  border-top: 2px solid #0EA5E9 !important;
+  border-bottom: 2px solid #0EA5E9 !important;
+  border-radius: 12px !important;
+  margin-bottom: 8px !important;
+  background: #f0f9ff !important;
+  box-shadow: 0 2px 8px rgba(14,165,233,0.08) !important;
+}
+/* Línea celeste redondeada arriba del primer producto */
+.cart-row.cart-float-horizontal:first-child {
+  border-top: 2px solid #0EA5E9 !important;
+  border-top-left-radius: 12px !important;
+  border-top-right-radius: 12px !important;
+}
+/* Línea celeste redondeada abajo del último producto */
+.cart-row.cart-float-horizontal:last-child {
+  border-bottom: 2px solid #0EA5E9 !important;
+  border-bottom-left-radius: 12px !important;
+  border-bottom-right-radius: 12px !important;
+}
+/* Línea celeste separadora entre productos en el mini carrito flotante */
+.cart-row.cart-float-horizontal:not(:last-child) {
+  border-bottom: 2px solid #0EA5E9 !important;
+  margin-bottom: 4px !important;
+}
+/* Botones pequeños para incremento/decremento en el mini carrito flotante */
+.cart-qty .qty-ion {
+  --padding-start: 2px !important;
+  --padding-end: 2px !important;
+  --padding-top: 2px !important;
+  --padding-bottom: 2px !important;
+  font-size: 0.85rem !important;
+  min-width: 24px !important;
+  height: 24px !important;
+}
+/* Responsive para el mini carrito flotante */
+@media (max-width: 600px) {
+  .cart-float {
+    width: 98vw !important;
+    right: 1vw !important;
+    bottom: 1vw !important;
+    max-height: 80vh !important;
+    border-radius: 16px !important;
+    padding: 0 !important;
+  }
+  .cart-float-header {
+    padding: 14px 10px !important;
+    font-size: 1rem !important;
+  }
+  .cart-float-body {
+    padding: 10px 8px !important;
+    max-height: 50vh !important;
+  }
+  .cart-row.cart-float-horizontal {
+    flex-wrap: wrap !important;
+    gap: 8px !important;
+    font-size: 0.95rem !important;
+  }
+  .cart-thumb {
+    width: 44px !important;
+    height: 44px !important;
+  }
+  .cart-name.producto-nombre {
+    font-size: 0.95rem !important;
+    margin-right: 8px !important;
+  }
+  .cart-price.producto-precio {
+    font-size: 0.92rem !important;
+    margin-right: 12px !important;
+  }
+  .cart-qty {
+    gap: 2px !important;
+  }
+}
+/* Layout horizontal para la fila del mini carrito flotante */
+.cart-float-horizontal {
+  display: flex !important;
+  align-items: center !important;
+  padding: 12px 0 !important;
+  gap: 0 !important;
+}
+/* Color personalizado para el texto 'Carrito de Compras' en el header del carrito flotante */
+.cart-title-text {
+  color: #15305a !important; /* Cambia este valor al color que prefieras */
+  font-weight: 800 !important;
+  font-size: 1.15rem !important;
+  margin-left: 8px !important;
+}
+/* Color del nombre del producto principal en la grid de productos */
+.producto-nombre-principal {
+  color: #0EA5E9 !important; /* Cambia este valor al color que prefieras */
+  font-weight: 800 !important;
+  font-size: 1.15rem !important;
+}
 /* Imágenes más pequeñas en el minicarrito flotante */
 .cart-float-body .cart-thumb {
   width: 60px !important;
@@ -20,11 +115,11 @@
 }
 /* Color del texto del nombre del producto en el minicarrito flotante */
 .cart-float-body .producto-nombre {
-  color: #121213 !important; /* Cambia este valor al color que prefieras */
+  color: #0EA5E9 !important; /* Cambia este valor al color que prefieras */
 }
 /* Color del texto de la descripción del producto en el minicarrito flotante */
 .cart-float-body .producto-descripcion {
-  color: #0a0a0a !important; /* Cambia este valor al color que prefieras */
+  color: #667de6 !important; /* Cambia este valor al color que prefieras */
 }
 /* Estrellas doradas en la calificación */
 .star-full {

@@ -1,142 +1,470 @@
-/* ===========================
-   Paleta azul (celestes)
-=========================== */
-:root{
-  --sky-50:  #E0F2FE;
-  --sky-100: #BAE6FD;
-  --sky-200: #7DD3FC;
-  --sky-300: #38BDF8;
-  --sky-400: #0EA5E9;
-  --sky-500: #3B82F6; /* Primary */
-  --ink-900:#0F172A;  /* Texto principal */
-  --ink-600:#475569;  /* Texto secundario */
-  --paper:  #F5F7FB;  /* Fondo */
+/* FacturaFinal.css - Estilo Claro y Dinámico para Embotelladora de Agua */
+
+/* Variables de color - Tonos claros y frescos */
+:root {
+  --agua-principal: #0ea5e9;
+  --agua-secundario: #38bdf8;
+  --agua-claro: #e0f7fa;
+  --agua-muy-claro: #f0f9ff;
+  --agua-cristal: #f8fafc;
+  --agua-blanco: #ffffff;
+  --agua-gris-suave: #f1f5f9;
+  --agua-borde: #e2e8f0;
+  --agua-texto: #334155;
+  --agua-texto-suave: #64748b;
+  --agua-exito: #10b981;
+  --agua-sombra: rgba(14, 165, 233, 0.08);
+  --agua-sombra-hover: rgba(14, 165, 233, 0.15);
 }
 
-/* ===========================
-   Fondo & cabecera
-=========================== */
-ion-toolbar[color="primary"]{
-  --background: linear-gradient(90deg, var(--sky-500), var(--sky-300));
-  --color: #fff;
+/* Fondo principal con efectos dinámicos sutiles */
+.factura-final-bg {
+  background: linear-gradient(135deg, #0F172A 0%, #1E293B 20%, #0EA5E9 60%, #38BDF8 100%) !important;
+  background-size: 200% 200% !important;
+  animation: backgroundShift 20s ease-in-out infinite !important;
+  min-height: 100vh !important;
+  position: relative !important;
+  overflow: hidden !important;
 }
 
-/* Fondo del contenido con “agua” sutil */
-.factura-final-bg{
-  --background:
-    radial-gradient(1400px 220px at 50% -120px, rgba(56,189,248,.18), transparent 60%),
-    linear-gradient(180deg, rgba(224,242,254,.65), var(--paper));
-  color: var(--ink-900);
-  /* padding ya lo aporta .ion-padding del TSX */
+/* Animación sutil del fondo */
+@keyframes backgroundShift {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
 }
 
-/* Si usas la clase watermark, intensifica el patrón (no requiere imagen) */
-.factura-final-bg.watermark{
-  --background:
-    radial-gradient(1200px 200px at 20% -80px, rgba(96,165,250,.14), transparent 60%),
-    radial-gradient(1200px 200px at 80% -60px, rgba(14,165,233,.12), transparent 60%),
-    linear-gradient(180deg, rgba(224,242,254,.65), var(--paper));
+/* Patrón de gotas de agua elegante */
+.watermark::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image: 
+    /* Gotas grandes distribuidas */
+    radial-gradient(circle at 20% 30%, rgba(14, 165, 233, 0.04) 12px, transparent 12px),
+    radial-gradient(circle at 80% 20%, rgba(14, 165, 233, 0.03) 16px, transparent 16px),
+    radial-gradient(circle at 60% 70%, rgba(14, 165, 233, 0.04) 14px, transparent 14px),
+    radial-gradient(circle at 30% 80%, rgba(14, 165, 233, 0.03) 18px, transparent 18px),
+    
+    /* Gotas medianas */
+    radial-gradient(circle at 40% 40%, rgba(56, 189, 248, 0.03) 8px, transparent 8px),
+    radial-gradient(circle at 70% 50%, rgba(56, 189, 248, 0.03) 10px, transparent 10px),
+    radial-gradient(circle at 25% 60%, rgba(56, 189, 248, 0.02) 9px, transparent 9px),
+    
+    /* Micro gotas para textura */
+    radial-gradient(circle at 45% 25%, rgba(56, 189, 248, 0.02) 4px, transparent 4px),
+    radial-gradient(circle at 85% 75%, rgba(56, 189, 248, 0.02) 5px, transparent 5px),
+    radial-gradient(circle at 15% 45%, rgba(56, 189, 248, 0.02) 3px, transparent 3px);
+  
+  background-size: 
+    400px 400px, 350px 350px, 380px 380px, 420px 420px,
+    200px 200px, 220px 220px, 180px 180px,
+    100px 100px, 120px 120px, 90px 90px;
+  
+  opacity: 0.6;
+  pointer-events: none;
+  z-index: 0;
+  animation: floatPattern 30s ease-in-out infinite;
 }
 
-/* ===========================
-   Títulos y textos
-=========================== */
-.factura-final-bg h2{
-  color: var(--sky-500);
-  font-weight: 800;
-  text-shadow: 0 2px 10px rgba(56,189,248,.18);
+/* Ondas concéntricas al tocar la superficie */
+.watermark::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: 
+    radial-gradient(circle at 25% 40%, transparent 20px, rgba(14, 165, 233, 0.02) 22px, rgba(14, 165, 233, 0.03) 26px, transparent 30px),
+    radial-gradient(circle at 75% 65%, transparent 25px, rgba(56, 189, 248, 0.02) 28px, rgba(56, 189, 248, 0.02) 32px, transparent 36px),
+    radial-gradient(circle at 45% 80%, transparent 15px, rgba(14, 165, 233, 0.02) 18px, rgba(14, 165, 233, 0.02) 22px, transparent 26px);
+  background-size: 500px 500px, 400px 400px, 300px 300px;
+  opacity: 0.5;
+  pointer-events: none;
+  z-index: 0;
+  animation: rippleWaves 25s ease-in-out infinite;
 }
-.factura-final-bg h3{
-  color: var(--ink-900);
+
+/* Animaciones fluidas */
+@keyframes floatPattern {
+  0%, 100% { 
+    transform: translateY(0px) translateX(0px) rotate(0deg);
+    opacity: 0.6;
+  }
+  50% { 
+    transform: translateY(-10px) translateX(5px) rotate(1deg);
+    opacity: 0.8;
+  }
+}
+
+@keyframes rippleWaves {
+  0%, 100% { 
+    transform: scale(1) rotate(0deg);
+    opacity: 0.3;
+  }
+  50% { 
+    transform: scale(1.1) rotate(180deg);
+    opacity: 0.5;
+  }
+}
+
+/* Contenido sobre el fondo */
+.factura-final-bg > * {
+  position: relative;
+  z-index: 10;
+}
+
+/* Títulos con diseño claro y elegante */
+.factura-final-bg h2 {
+  color: var(--agua-principal);
   font-weight: 700;
-  padding-left: 10px;
-  border-left: 4px solid var(--sky-300);
-  margin-top: 6px;
+  font-size: 1.5rem;
+  text-align: center;
+  margin-bottom: 20px;
+  padding: 20px;
+  background: var(--agua-blanco);
+  border-radius: 16px;
+  box-shadow: 0 4px 20px var(--agua-sombra);
+  border: 1px solid var(--agua-borde);
+  position: relative;
 }
 
-/* ===========================
-   Lista de productos (mejoras visuales)
-   (No hay clases en el TSX: solo añadimos toques suaves)
-=========================== */
-.factura-final-bg img{
-  box-shadow: 0 4px 12px rgba(2,132,199,.12);
-  border: 1px solid rgba(59,130,246,.12);
+.factura-final-bg h2::before {
+  content: '🧾';
+  display: block;
+  font-size: 1.8rem;
+  margin-bottom: 8px;
+  color: var(--agua-secundario);
 }
 
-.factura-final-bg div[style*="display: flex"][style*="align-items: center"][style*="padding-bottom"]{
-  border-bottom: 1px dashed rgba(14,165,233,.28) !important; /* sobreescribe #eee inline */
+.factura-final-bg h3 {
+  color: var(--agua-principal);
+  font-weight: 600;
+  font-size: 1.2rem;
+  margin-bottom: 12px;
+  margin-top: 20px;
+  display: flex;
+  align-items: center;
+  padding: 12px 16px;
+  background: var(--agua-muy-claro);
+  border-radius: 10px;
+  border-left: 4px solid var(--agua-principal);
 }
 
-/* ===========================
-   Inputs & selects (azules)
-=========================== */
+/* Iconos para secciones */
+.factura-final-bg h3:has-text("Dirección")::before {
+  content: '🏠';
+  margin-right: 10px;
+  font-size: 1.2em;
+}
+
+.factura-final-bg h3:has-text("pago")::before {
+  content: '💳';
+  margin-right: 10px;
+  font-size: 1.2em;
+}
+
+/* Contenedor de productos elegante */
+.factura-final-bg > div:first-of-type {
+  background: var(--agua-blanco);
+  border-radius: 16px;
+  padding: 20px;
+  margin-bottom: 20px;
+  box-shadow: 0 4px 16px var(--agua-sombra);
+  border: 1px solid var(--agua-borde);
+}
+
+/* Items de productos con hover dinámico */
+.factura-final-bg [style*="display: flex"][style*="alignItems: center"] {
+  background: var(--agua-cristal) !important;
+  border-radius: 12px !important;
+  padding: 16px !important;
+  margin-bottom: 12px !important;
+  border: 1px solid var(--agua-borde) !important;
+  transition: all 0.3s ease !important;
+  position: relative !important;
+}
+
+.factura-final-bg [style*="display: flex"][style*="alignItems: center"]:hover {
+  transform: translateY(-2px) !important;
+  box-shadow: 0 8px 24px var(--agua-sombra-hover) !important;
+  background: var(--agua-blanco) !important;
+}
+
+/* Imágenes de productos mejoradas */
+.factura-final-bg img[style*="width: 54"] {
+  border: 2px solid var(--agua-borde) !important;
+  box-shadow: 0 2px 8px var(--agua-sombra) !important;
+  background: var(--agua-blanco) !important;
+  transition: all 0.3s ease !important;
+}
+
+.factura-final-bg img[style*="width: 54"]:hover {
+  transform: scale(1.05) !important;
+  border-color: var(--agua-principal) !important;
+}
+
+/* Texto de productos */
+.factura-final-bg [style*="fontWeight: 600"] {
+  color: var(--agua-texto) !important;
+  font-size: 1.1rem !important;
+}
+
+.factura-final-bg [style*="fontWeight: 600"]::before {
+  content: '💧';
+  margin-right: 6px;
+  font-size: 0.9em;
+}
+
+/* Cantidad y metadata */
+.factura-final-bg [style*="color: #444"] {
+  color: var(--agua-texto-suave) !important;
+  font-weight: 500 !important;
+  background: var(--agua-muy-claro) !important;
+  padding: 4px 8px !important;
+  border-radius: 8px !important;
+  display: inline-block !important;
+  font-size: 0.9rem !important;
+}
+
+.factura-final-bg [style*="color: #444"]::before {
+  content: '📦';
+  margin-right: 4px;
+  font-size: 0.8em;
+}
+
+/* Precios destacados */
+.factura-final-bg [style*="fontWeight: 700"] {
+  color: var(--agua-blanco) !important;
+  background: linear-gradient(135deg, var(--agua-principal), var(--agua-secundario)) !important;
+  padding: 8px 16px !important;
+  border-radius: 20px !important;
+  font-size: 1.1rem !important;
+  box-shadow: 0 3px 12px var(--agua-sombra) !important;
+}
+
+.factura-final-bg [style*="fontWeight: 700"]::before {
+  content: '💰';
+  margin-right: 6px;
+}
+
+/* Total prominente */
+.factura-final-bg [style*="textAlign: right"][style*="Total"] {
+  background: linear-gradient(135deg, var(--agua-principal), var(--agua-secundario)) !important;
+  color: var(--agua-blanco) !important;
+  padding: 20px !important;
+  border-radius: 16px !important;
+  box-shadow: 0 6px 24px var(--agua-sombra-hover) !important;
+  margin: 20px 0 !important;
+  text-align: center !important;
+  font-size: 1.3rem !important;
+  border: 2px solid rgba(255, 255, 255, 0.2) !important;
+}
+
+.factura-final-bg [style*="textAlign: right"][style*="Total"]::before {
+  content: '💎';
+  display: block;
+  font-size: 1.6rem;
+  margin-bottom: 8px;
+}
+
+/* Inputs modernos y claros */
 .factura-final-bg input[type="text"],
-.factura-final-bg select{
-  background: #fff;
-  border: 1px solid var(--sky-300) !important;  /* override inline #ccc */
-  border-radius: 10px !important;
-  box-shadow: 0 2px 10px rgba(56,189,248,.12);
-  color: var(--ink-900);
+.factura-final-bg select {
+  background: var(--agua-blanco) !important;
+  border: 2px solid var(--agua-borde) !important;
+  border-radius: 12px !important;
+  padding: 16px !important;
+  font-size: 1rem !important;
+  color: var(--agua-texto) !important;
+  transition: all 0.3s ease !important;
+  box-shadow: 0 2px 8px var(--agua-sombra) !important;
 }
-.factura-final-bg input[type="text"]::placeholder{
-  color: #7aa6c9;
-}
+
 .factura-final-bg input[type="text"]:focus,
-.factura-final-bg select:focus{
-  outline: none;
-  border-color: var(--sky-400) !important;
-  box-shadow: 0 0 0 3px rgba(14,165,233,.25);
+.factura-final-bg select:focus {
+  outline: none !important;
+  border-color: var(--agua-principal) !important;
+  box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.1), 0 4px 16px var(--agua-sombra-hover) !important;
+  transform: translateY(-1px) !important;
 }
 
-/* ===========================
-   Botones (azules)
-=========================== */
-/* “Confirmar pedido” (TSX usa color="success"): lo forzamos a azul */
-.factura-final-bg ion-button[color="success"]{
-  --background: linear-gradient(90deg, var(--sky-500), var(--sky-300));
-  --background-hover: var(--sky-400);
-  --background-activated: var(--sky-400);
-  --color: #fff;
-  --border-radius: 12px;
-  font-weight: 800;
-  letter-spacing: .3px;
-  box-shadow: 0 10px 24px rgba(56,189,248,.28);
+.factura-final-bg input[type="text"]::placeholder {
+  color: var(--agua-texto-suave) !important;
+  font-style: italic !important;
 }
 
-/* “Volver” (outline) en celeste */
-.factura-final-bg ion-button[fill="outline"]{
-  --border-color: var(--sky-300);
-  --color: var(--sky-500);
-  --background: rgba(255,255,255,.6);
-  --border-radius: 12px;
-  font-weight: 700;
+/* Input de archivo estilizado */
+.factura-final-bg input[type="file"] {
+  background: var(--agua-muy-claro) !important;
+  border: 2px dashed var(--agua-principal) !important;
+  border-radius: 12px !important;
+  padding: 20px !important;
+  text-align: center !important;
+  transition: all 0.3s ease !important;
+  cursor: pointer !important;
 }
 
-/* Quitar bordes/aros indeseados y redondear pill si quieres */
-.factura-final-bg ion-button::part(native){
-  border: none;
-  outline: none;
+.factura-final-bg input[type="file"]:hover {
+  background: var(--agua-claro) !important;
+  border-color: var(--agua-secundario) !important;
+  transform: scale(1.01) !important;
 }
 
-/* ===========================
-   Total y tipografía fina
-=========================== */
-.factura-final-bg > div[style*="text-align: right"]{
-  color: var(--ink-900);
+/* Labels informativos */
+.factura-final-bg label {
+  color: var(--agua-principal) !important;
+  font-weight: 600 !important;
+  font-size: 1rem !important;
+  margin-bottom: 8px !important;
+  display: flex !important;
+  align-items: center !important;
+  padding: 8px 12px !important;
+  background: var(--agua-muy-claro) !important;
+  border-radius: 8px !important;
+  border-left: 3px solid var(--agua-principal) !important;
 }
-.factura-final-bg .total-pill{
-  background: linear-gradient(90deg, var(--sky-500), var(--sky-300));
-  color: #fff;
-  font-weight: 800;
+
+.factura-final-bg label::before {
+  content: '📋';
+  margin-right: 8px;
+  font-size: 1.1em;
+}
+
+/* Panel de comprobante exitoso */
+.panel-title {
+  background: linear-gradient(135deg, var(--agua-exito), #00c853);
+  color: var(--agua-blanco);
+  padding: 16px;
   border-radius: 12px;
-  padding: 12px;
-  text-align: right;
+  margin-bottom: 16px;
+  font-weight: 600;
+  text-align: center;
+  box-shadow: 0 4px 16px rgba(16, 185, 129, 0.3);
 }
 
-/* ===========================
-   Responsive
-=========================== */
-@media (max-width: 480px){
-  .factura-final-bg img{ width: 48px !important; height: 48px !important; }
+.panel-title::before {
+  content: '✅';
+  display: block;
+  font-size: 1.4rem;
+  margin-bottom: 4px;
 }
 
+/* Imagen del comprobante */
+.factura-final-bg img[alt="Comprobante"] {
+  border: 3px solid var(--agua-exito) !important;
+  border-radius: 12px !important;
+  box-shadow: 0 6px 20px rgba(16, 185, 129, 0.2) !important;
+  display: block !important;
+  margin: 0 auto !important;
+  transition: all 0.3s ease !important;
+}
+
+.factura-final-bg img[alt="Comprobante"]:hover {
+  transform: scale(1.02) !important;
+}
+
+/* Botones con estilo moderno */
+ion-button[color="success"] {
+  --background: linear-gradient(135deg, var(--agua-exito), #00c853);
+  --background-hover: linear-gradient(135deg, #00c853, var(--agua-exito));
+  --border-radius: 12px;
+  --box-shadow: 0 4px 16px rgba(16, 185, 129, 0.3);
+  --padding-top: 16px;
+  --padding-bottom: 16px;
+  font-weight: 600;
+  font-size: 1.1rem;
+  margin: 16px 0;
+  transition: all 0.3s ease;
+}
+
+ion-button[color="success"]:hover {
+  transform: translateY(-2px);
+  --box-shadow: 0 8px 24px rgba(16, 185, 129, 0.4);
+}
+
+ion-button[fill="outline"] {
+  --border-color: var(--agua-principal);
+  --color: var(--agua-principal);
+  --border-radius: 12px;
+  --border-width: 2px;
+  --padding-top: 16px;
+  --padding-bottom: 16px;
+  --background: var(--agua-blanco);
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+ion-button[fill="outline"]:hover {
+  --background: var(--agua-muy-claro);
+  transform: translateY(-1px);
+  --box-shadow: 0 4px 16px var(--agua-sombra);
+}
+
+/* Estados deshabilitados */
+ion-button[disabled] {
+  opacity: 0.5;
+  --background: var(--agua-gris-suave);
+  transform: none !important;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .factura-final-bg h2 {
+    font-size: 1.3rem;
+    padding: 16px;
+  }
+  
+  .factura-final-bg h3 {
+    font-size: 1.1rem;
+  }
+  
+  .factura-final-bg [style*="display: flex"][style*="alignItems: center"] {
+    flex-direction: column !important;
+    text-align: center !important;
+    padding: 16px !important;
+  }
+  
+  .factura-final-bg img[style*="width: 54"] {
+    margin-bottom: 12px !important;
+    margin-right: 0 !important;
+  }
+}
+
+/* Mensaje de carrito vacío */
+.factura-final-bg div:contains("No hay productos") {
+  text-align: center;
+  color: var(--agua-texto-suave);
+  font-style: italic;
+  padding: 40px;
+  background: var(--agua-muy-claro);
+  border-radius: 12px;
+  border: 2px dashed var(--agua-borde);
+}
+
+.factura-final-bg div:contains("No hay productos")::before {
+  content: '🛒';
+  display: block;
+  font-size: 2.5rem;
+  margin-bottom: 16px;
+  opacity: 0.6;
+}
+
+/* Animaciones de entrada suaves */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.factura-final-bg > * {
+  animation: fadeInUp 0.6s ease-out;
+}
