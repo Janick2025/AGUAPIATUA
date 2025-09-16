@@ -1,39 +1,158 @@
-/* FacturaFinal.css - Estilo Claro y Dinámico para Embotelladora de Agua */
+.payment-option {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+.payment-option input[type="radio"] {
+  margin: 0 8px 0 0;
+  accent-color: #0EA5E9;
+}
+.option-content {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.payment-option .option-title {
+  color: #0EA5E9 !important;
+  font-weight: 700;
+}
+.factura-final-bg select option {
+  color: #0EA5E9 !important;
+}
+/* FacturaFinal.css - Diseño Moderno para Embotelladora */
 
-/* Variables de color - Tonos claros y frescos */
+/* Variables de color optimizadas */
 :root {
-  --agua-principal: #0ea5e9;
-  --agua-secundario: #38bdf8;
-  --agua-claro: #e0f7fa;
-  --agua-muy-claro: #f0f9ff;
-  --agua-cristal: #f8fafc;
-  --agua-blanco: #ffffff;
-  --agua-gris-suave: #f1f5f9;
-  --agua-borde: #e2e8f0;
-  --agua-texto: #334155;
-  --agua-texto-suave: #64748b;
-  --agua-exito: #10b981;
-  --agua-sombra: rgba(14, 165, 233, 0.08);
-  --agua-sombra-hover: rgba(14, 165, 233, 0.15);
+  --agua-primary: #0ea5e9;
+  --agua-secondary: #38bdf8;
+  --agua-accent: #0284c7;
+  --agua-success: #10b981;
+  --agua-warning: #f59e0b;
+  --agua-danger: #ef4444;
+  
+  /* Fondos */
+  --agua-bg-primary: #ffffff;
+  --agua-bg-secondary: #f8fafc;
+  --agua-bg-soft: #f0f9ff;
+  --agua-bg-muted: #e0f7fa;
+  
+  /* Textos */
+  --agua-text-primary: #0f172a;
+  --agua-text-secondary: #475569;
+  --agua-text-muted: #64748b;
+  
+  /* Bordes y sombras */
+  --agua-border: #e2e8f0;
+  --agua-border-focus: #0ea5e9;
+  --agua-shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --agua-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  --agua-shadow-md: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  --agua-shadow-lg: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+  --agua-shadow-color: rgba(14, 165, 233, 0.1);
+  
+  /* Transiciones */
+  --agua-transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  --agua-transition-fast: all 0.15s ease-out;
 }
 
-/* Fondo principal con efectos dinámicos sutiles */
-.factura-final-bg {
-  background: linear-gradient(135deg, #0F172A 0%, #1E293B 20%, #0EA5E9 60%, #38BDF8 100%) !important;
-  background-size: 200% 200% !important;
-  animation: backgroundShift 20s ease-in-out infinite !important;
-  min-height: 100vh !important;
-  position: relative !important;
-  overflow: hidden !important;
+/* Animaciones principales */
+@keyframes waterFlow {
+  0%, 100% { 
+    transform: translateX(0px) translateY(0px);
+    opacity: 0.3;
+  }
+  33% { 
+    transform: translateX(10px) translateY(-5px);
+    opacity: 0.5;
+  }
+  66% { 
+    transform: translateX(-5px) translateY(-10px);
+    opacity: 0.4;
+  }
 }
 
-/* Animación sutil del fondo */
-@keyframes backgroundShift {
-  0%, 100% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
+@keyframes dropFall {
+  0% { 
+    transform: translateY(-20px);
+    opacity: 0;
+  }
+  10% { opacity: 0.6; }
+  90% { opacity: 0.6; }
+  100% { 
+    transform: translateY(100vh);
+    opacity: 0;
+  }
 }
 
-/* Patrón de gotas de agua elegante */
+@keyframes rippleEffect {
+  0% { 
+    transform: scale(1);
+    opacity: 0.4;
+  }
+  50% { 
+    transform: scale(1.1);
+    opacity: 0.6;
+  }
+  100% { 
+    transform: scale(1);
+    opacity: 0.4;
+  }
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* Toolbar personalizada */
+.factura-toolbar {
+  --background: linear-gradient(135deg, var(--agua-primary), var(--agua-secondary));
+  --color: white;
+  position: relative;
+  overflow: hidden;
+}
+
+.factura-toolbar::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+  animation: slideInRight 3s ease-in-out infinite;
+}
+
+/* Contenido principal */
+.factura-content {
+  --background: linear-gradient(135deg, 
+    var(--agua-bg-primary) 0%, 
+    var(--agua-bg-soft) 25%, 
+    var(--agua-bg-secondary) 75%, 
+    var(--agua-bg-primary) 100%);
+  position: relative;
+  overflow: hidden;
+}
+
+/* Efectos de agua de fondo */
 .watermark::before {
   content: '';
   position: absolute;
@@ -42,21 +161,21 @@
   right: 0;
   bottom: 0;
   background-image: 
-    /* Gotas grandes distribuidas */
-    radial-gradient(circle at 20% 30%, rgba(14, 165, 233, 0.04) 12px, transparent 12px),
-    radial-gradient(circle at 80% 20%, rgba(14, 165, 233, 0.03) 16px, transparent 16px),
-    radial-gradient(circle at 60% 70%, rgba(14, 165, 233, 0.04) 14px, transparent 14px),
-    radial-gradient(circle at 30% 80%, rgba(14, 165, 233, 0.03) 18px, transparent 18px),
+    /* Gotas grandes */
+    radial-gradient(circle at 20% 30%, rgba(14, 165, 233, 0.05) 15px, transparent 15px),
+    radial-gradient(circle at 80% 20%, rgba(14, 165, 233, 0.04) 20px, transparent 20px),
+    radial-gradient(circle at 60% 70%, rgba(14, 165, 233, 0.05) 18px, transparent 18px),
+    radial-gradient(circle at 30% 80%, rgba(14, 165, 233, 0.04) 22px, transparent 22px),
     
     /* Gotas medianas */
-    radial-gradient(circle at 40% 40%, rgba(56, 189, 248, 0.03) 8px, transparent 8px),
-    radial-gradient(circle at 70% 50%, rgba(56, 189, 248, 0.03) 10px, transparent 10px),
-    radial-gradient(circle at 25% 60%, rgba(56, 189, 248, 0.02) 9px, transparent 9px),
+    radial-gradient(circle at 40% 40%, rgba(56, 189, 248, 0.04) 10px, transparent 10px),
+    radial-gradient(circle at 70% 50%, rgba(56, 189, 248, 0.04) 12px, transparent 12px),
+    radial-gradient(circle at 25% 60%, rgba(56, 189, 248, 0.03) 8px, transparent 8px),
     
-    /* Micro gotas para textura */
-    radial-gradient(circle at 45% 25%, rgba(56, 189, 248, 0.02) 4px, transparent 4px),
-    radial-gradient(circle at 85% 75%, rgba(56, 189, 248, 0.02) 5px, transparent 5px),
-    radial-gradient(circle at 15% 45%, rgba(56, 189, 248, 0.02) 3px, transparent 3px);
+    /* Gotas pequeñas */
+    radial-gradient(circle at 45% 25%, rgba(56, 189, 248, 0.03) 5px, transparent 5px),
+    radial-gradient(circle at 85% 75%, rgba(56, 189, 248, 0.03) 6px, transparent 6px),
+    radial-gradient(circle at 15% 45%, rgba(56, 189, 248, 0.02) 4px, transparent 4px);
   
   background-size: 
     400px 400px, 350px 350px, 380px 380px, 420px 420px,
@@ -66,10 +185,9 @@
   opacity: 0.6;
   pointer-events: none;
   z-index: 0;
-  animation: floatPattern 30s ease-in-out infinite;
+  animation: waterFlow 25s ease-in-out infinite;
 }
 
-/* Ondas concéntricas al tocar la superficie */
 .watermark::after {
   content: '';
   position: absolute;
@@ -78,393 +196,279 @@
   right: 0;
   bottom: 0;
   background: 
-    radial-gradient(circle at 25% 40%, transparent 20px, rgba(14, 165, 233, 0.02) 22px, rgba(14, 165, 233, 0.03) 26px, transparent 30px),
-    radial-gradient(circle at 75% 65%, transparent 25px, rgba(56, 189, 248, 0.02) 28px, rgba(56, 189, 248, 0.02) 32px, transparent 36px),
-    radial-gradient(circle at 45% 80%, transparent 15px, rgba(14, 165, 233, 0.02) 18px, rgba(14, 165, 233, 0.02) 22px, transparent 26px);
-  background-size: 500px 500px, 400px 400px, 300px 300px;
-  opacity: 0.5;
+    /* Ondas concéntricas */
+    radial-gradient(circle at 25% 40%, transparent 25px, rgba(14, 165, 233, 0.02) 28px, rgba(14, 165, 233, 0.03) 32px, transparent 36px),
+    radial-gradient(circle at 75% 65%, transparent 30px, rgba(56, 189, 248, 0.02) 34px, rgba(56, 189, 248, 0.02) 38px, transparent 42px),
+    radial-gradient(circle at 45% 80%, transparent 20px, rgba(14, 165, 233, 0.02) 24px, rgba(14, 165, 233, 0.02) 28px, transparent 32px);
+  background-size: 600px 600px, 500px 500px, 400px 400px;
+  opacity: 0.4;
   pointer-events: none;
   z-index: 0;
-  animation: rippleWaves 25s ease-in-out infinite;
+  animation: rippleEffect 20s ease-in-out infinite;
 }
 
-/* Animaciones fluidas */
-@keyframes floatPattern {
-  0%, 100% { 
-    transform: translateY(0px) translateX(0px) rotate(0deg);
-    opacity: 0.6;
-  }
-  50% { 
-    transform: translateY(-10px) translateX(5px) rotate(1deg);
-    opacity: 0.8;
-  }
-}
-
-@keyframes rippleWaves {
-  0%, 100% { 
-    transform: scale(1) rotate(0deg);
-    opacity: 0.3;
-  }
-  50% { 
-    transform: scale(1.1) rotate(180deg);
-    opacity: 0.5;
-  }
-}
-
-/* Contenido sobre el fondo */
-.factura-final-bg > * {
+/* Contenedor principal */
+.factura-container {
   position: relative;
   z-index: 10;
-}
-
-/* Títulos con diseño claro y elegante */
-.factura-final-bg h2 {
-  color: var(--agua-principal);
-  font-weight: 700;
-  font-size: 1.5rem;
-  text-align: center;
-  margin-bottom: 20px;
+  max-width: 800px;
+  margin: 0 auto;
   padding: 20px;
-  background: var(--agua-blanco);
-  border-radius: 16px;
-  box-shadow: 0 4px 20px var(--agua-sombra);
-  border: 1px solid var(--agua-borde);
+  animation: fadeInUp 0.8s ease-out;
+}
+
+/* Header de la factura */
+.factura-header {
+  text-align: center;
+  background: var(--agua-bg-primary);
+  border-radius: 20px;
+  padding: 30px 20px;
+  margin-bottom: 30px;
+  box-shadow: var(--agua-shadow-md);
+  border: 1px solid var(--agua-border);
   position: relative;
+  overflow: hidden;
 }
 
-.factura-final-bg h2::before {
-  content: '🧾';
-  display: block;
-  font-size: 1.8rem;
-  margin-bottom: 8px;
-  color: var(--agua-secundario);
+.factura-header::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, var(--agua-primary), var(--agua-secondary));
+  border-radius: 20px 20px 0 0;
 }
 
-.factura-final-bg h3 {
-  color: var(--agua-principal);
-  font-weight: 600;
-  font-size: 1.2rem;
-  margin-bottom: 12px;
-  margin-top: 20px;
+.header-icon {
+  font-size: 3rem;
+  color: var(--agua-secondary);
+  margin-bottom: 15px;
+  animation: fadeInUp 1s ease-out 0.2s both;
+}
+
+.header-title {
+  color: var(--agua-text-primary);
+  font-size: 2rem;
+  font-weight: 700;
+  margin: 0 0 10px 0;
+  background: linear-gradient(135deg, var(--agua-primary), var(--agua-secondary));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: fadeInUp 1s ease-out 0.4s both;
+}
+
+.header-subtitle {
+  color: var(--agua-text-secondary);
+  font-size: 1.1rem;
+  margin: 0;
+  animation: fadeInUp 1s ease-out 0.6s both;
+}
+
+/* Secciones */
+.productos-section,
+.form-section {
+  background: var(--agua-bg-primary);
+  border-radius: 16px;
+  padding: 25px;
+  margin-bottom: 25px;
+  box-shadow: var(--agua-shadow);
+  border: 1px solid var(--agua-border);
+  transition: var(--agua-transition);
+}
+
+.productos-section:hover,
+.form-section:hover {
+  box-shadow: var(--agua-shadow-md);
+  transform: translateY(-2px);
+}
+
+.section-title {
   display: flex;
   align-items: center;
-  padding: 12px 16px;
-  background: var(--agua-muy-claro);
-  border-radius: 10px;
-  border-left: 4px solid var(--agua-principal);
-}
-
-/* Iconos para secciones */
-.factura-final-bg h3:has-text("Dirección")::before {
-  content: '🏠';
-  margin-right: 10px;
-  font-size: 1.2em;
-}
-
-.factura-final-bg h3:has-text("pago")::before {
-  content: '💳';
-  margin-right: 10px;
-  font-size: 1.2em;
-}
-
-/* Contenedor de productos elegante */
-.factura-final-bg > div:first-of-type {
-  background: var(--agua-blanco);
-  border-radius: 16px;
-  padding: 20px;
-  margin-bottom: 20px;
-  box-shadow: 0 4px 16px var(--agua-sombra);
-  border: 1px solid var(--agua-borde);
-}
-
-/* Items de productos con hover dinámico */
-.factura-final-bg [style*="display: flex"][style*="alignItems: center"] {
-  background: var(--agua-cristal) !important;
-  border-radius: 12px !important;
-  padding: 16px !important;
-  margin-bottom: 12px !important;
-  border: 1px solid var(--agua-borde) !important;
-  transition: all 0.3s ease !important;
-  position: relative !important;
-}
-
-.factura-final-bg [style*="display: flex"][style*="alignItems: center"]:hover {
-  transform: translateY(-2px) !important;
-  box-shadow: 0 8px 24px var(--agua-sombra-hover) !important;
-  background: var(--agua-blanco) !important;
-}
-
-/* Imágenes de productos mejoradas */
-.factura-final-bg img[style*="width: 54"] {
-  border: 2px solid var(--agua-borde) !important;
-  box-shadow: 0 2px 8px var(--agua-sombra) !important;
-  background: var(--agua-blanco) !important;
-  transition: all 0.3s ease !important;
-}
-
-.factura-final-bg img[style*="width: 54"]:hover {
-  transform: scale(1.05) !important;
-  border-color: var(--agua-principal) !important;
-}
-
-/* Texto de productos */
-.factura-final-bg [style*="fontWeight: 600"] {
-  color: var(--agua-texto) !important;
-  font-size: 1.1rem !important;
-}
-
-.factura-final-bg [style*="fontWeight: 600"]::before {
-  content: '💧';
-  margin-right: 6px;
-  font-size: 0.9em;
-}
-
-/* Cantidad y metadata */
-.factura-final-bg [style*="color: #444"] {
-  color: var(--agua-texto-suave) !important;
-  font-weight: 500 !important;
-  background: var(--agua-muy-claro) !important;
-  padding: 4px 8px !important;
-  border-radius: 8px !important;
-  display: inline-block !important;
-  font-size: 0.9rem !important;
-}
-
-.factura-final-bg [style*="color: #444"]::before {
-  content: '📦';
-  margin-right: 4px;
-  font-size: 0.8em;
-}
-
-/* Precios destacados */
-.factura-final-bg [style*="fontWeight: 700"] {
-  color: var(--agua-blanco) !important;
-  background: linear-gradient(135deg, var(--agua-principal), var(--agua-secundario)) !important;
-  padding: 8px 16px !important;
-  border-radius: 20px !important;
-  font-size: 1.1rem !important;
-  box-shadow: 0 3px 12px var(--agua-sombra) !important;
-}
-
-.factura-final-bg [style*="fontWeight: 700"]::before {
-  content: '💰';
-  margin-right: 6px;
-}
-
-/* Total prominente */
-.factura-final-bg [style*="textAlign: right"][style*="Total"] {
-  background: linear-gradient(135deg, var(--agua-principal), var(--agua-secundario)) !important;
-  color: var(--agua-blanco) !important;
-  padding: 20px !important;
-  border-radius: 16px !important;
-  box-shadow: 0 6px 24px var(--agua-sombra-hover) !important;
-  margin: 20px 0 !important;
-  text-align: center !important;
-  font-size: 1.3rem !important;
-  border: 2px solid rgba(255, 255, 255, 0.2) !important;
-}
-
-.factura-final-bg [style*="textAlign: right"][style*="Total"]::before {
-  content: '💎';
-  display: block;
-  font-size: 1.6rem;
-  margin-bottom: 8px;
-}
-
-/* Inputs modernos y claros */
-.factura-final-bg input[type="text"],
-.factura-final-bg select {
-  background: var(--agua-blanco) !important;
-  border: 2px solid var(--agua-borde) !important;
-  border-radius: 12px !important;
-  padding: 16px !important;
-  font-size: 1rem !important;
-  color: var(--agua-texto) !important;
-  transition: all 0.3s ease !important;
-  box-shadow: 0 2px 8px var(--agua-sombra) !important;
-}
-
-.factura-final-bg input[type="text"]:focus,
-.factura-final-bg select:focus {
-  outline: none !important;
-  border-color: var(--agua-principal) !important;
-  box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.1), 0 4px 16px var(--agua-sombra-hover) !important;
-  transform: translateY(-1px) !important;
-}
-
-.factura-final-bg input[type="text"]::placeholder {
-  color: var(--agua-texto-suave) !important;
-  font-style: italic !important;
-}
-
-/* Input de archivo estilizado */
-.factura-final-bg input[type="file"] {
-  background: var(--agua-muy-claro) !important;
-  border: 2px dashed var(--agua-principal) !important;
-  border-radius: 12px !important;
-  padding: 20px !important;
-  text-align: center !important;
-  transition: all 0.3s ease !important;
-  cursor: pointer !important;
-}
-
-.factura-final-bg input[type="file"]:hover {
-  background: var(--agua-claro) !important;
-  border-color: var(--agua-secundario) !important;
-  transform: scale(1.01) !important;
-}
-
-/* Labels informativos */
-.factura-final-bg label {
-  color: var(--agua-principal) !important;
-  font-weight: 600 !important;
-  font-size: 1rem !important;
-  margin-bottom: 8px !important;
-  display: flex !important;
-  align-items: center !important;
-  padding: 8px 12px !important;
-  background: var(--agua-muy-claro) !important;
-  border-radius: 8px !important;
-  border-left: 3px solid var(--agua-principal) !important;
-}
-
-.factura-final-bg label::before {
-  content: '📋';
-  margin-right: 8px;
-  font-size: 1.1em;
-}
-
-/* Panel de comprobante exitoso */
-.panel-title {
-  background: linear-gradient(135deg, var(--agua-exito), #00c853);
-  color: var(--agua-blanco);
-  padding: 16px;
-  border-radius: 12px;
-  margin-bottom: 16px;
-  font-weight: 600;
-  text-align: center;
-  box-shadow: 0 4px 16px rgba(16, 185, 129, 0.3);
-}
-
-.panel-title::before {
-  content: '✅';
-  display: block;
+  gap: 12px;
+  color: var(--agua-text-primary);
   font-size: 1.4rem;
-  margin-bottom: 4px;
-}
-
-/* Imagen del comprobante */
-.factura-final-bg img[alt="Comprobante"] {
-  border: 3px solid var(--agua-exito) !important;
-  border-radius: 12px !important;
-  box-shadow: 0 6px 20px rgba(16, 185, 129, 0.2) !important;
-  display: block !important;
-  margin: 0 auto !important;
-  transition: all 0.3s ease !important;
-}
-
-.factura-final-bg img[alt="Comprobante"]:hover {
-  transform: scale(1.02) !important;
-}
-
-/* Botones con estilo moderno */
-ion-button[color="success"] {
-  --background: linear-gradient(135deg, var(--agua-exito), #00c853);
-  --background-hover: linear-gradient(135deg, #00c853, var(--agua-exito));
-  --border-radius: 12px;
-  --box-shadow: 0 4px 16px rgba(16, 185, 129, 0.3);
-  --padding-top: 16px;
-  --padding-bottom: 16px;
   font-weight: 600;
-  font-size: 1.1rem;
-  margin: 16px 0;
-  transition: all 0.3s ease;
+  margin-bottom: 20px;
+  padding-bottom: 15px;
+  border-bottom: 2px solid var(--agua-bg-soft);
 }
 
-ion-button[color="success"]:hover {
-  transform: translateY(-2px);
-  --box-shadow: 0 8px 24px rgba(16, 185, 129, 0.4);
+.title-icon {
+  color: var(--agua-primary);
+  font-size: 1.6rem;
 }
 
-ion-button[fill="outline"] {
-  --border-color: var(--agua-principal);
-  --color: var(--agua-principal);
-  --border-radius: 12px;
-  --border-width: 2px;
-  --padding-top: 16px;
-  --padding-bottom: 16px;
-  --background: var(--agua-blanco);
-  font-weight: 600;
-  transition: all 0.3s ease;
+/* Lista de productos */
+.productos-list {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
 }
 
-ion-button[fill="outline"]:hover {
-  --background: var(--agua-muy-claro);
-  transform: translateY(-1px);
-  --box-shadow: 0 4px 16px var(--agua-sombra);
-}
-
-/* Estados deshabilitados */
-ion-button[disabled] {
-  opacity: 0.5;
-  --background: var(--agua-gris-suave);
-  transform: none !important;
-}
-
-/* Responsive design */
-@media (max-width: 768px) {
-  .factura-final-bg h2 {
-    font-size: 1.3rem;
-    padding: 16px;
-  }
-  
-  .factura-final-bg h3 {
-    font-size: 1.1rem;
-  }
-  
-  .factura-final-bg [style*="display: flex"][style*="alignItems: center"] {
-    flex-direction: column !important;
-    text-align: center !important;
-    padding: 16px !important;
-  }
-  
-  .factura-final-bg img[style*="width: 54"] {
-    margin-bottom: 12px !important;
-    margin-right: 0 !important;
-  }
-}
-
-/* Mensaje de carrito vacío */
-.factura-final-bg div:contains("No hay productos") {
-  text-align: center;
-  color: var(--agua-texto-suave);
-  font-style: italic;
-  padding: 40px;
-  background: var(--agua-muy-claro);
+.producto-item {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  padding: 20px;
+  background: var(--agua-bg-soft);
   border-radius: 12px;
-  border: 2px dashed var(--agua-borde);
+  border: 1px solid var(--agua-border);
+  transition: var(--agua-transition);
 }
 
-.factura-final-bg div:contains("No hay productos")::before {
-  content: '🛒';
+.factura-producto-imagen {
+  width: 48px;
+  height: 48px;
+  object-fit: contain;
+  border-radius: 10px;
+  background: var(--agua-bg-primary);
+  border: 2px solid var(--agua-border);
+  padding: 5px;
+  transition: var(--agua-transition);
+}
+
+.producto-item:hover .producto-imagen {
+  transform: scale(1.05);
+  border-color: var(--agua-primary);
+}
+
+.producto-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.producto-nombre {
+  color: var(--agua-text-primary);
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin: 0;
+}
+
+.producto-detalles {
+  display: flex;
+  gap: 15px;
+  align-items: center;
+}
+
+.cantidad,
+.precio-unitario {
+  color: var(--agua-text-secondary);
+  font-size: 0.9rem;
+  background: var(--agua-bg-primary);
+  padding: 4px 8px;
+  border-radius: 6px;
+  border: 1px solid var(--agua-border);
+}
+
+.producto-total {
+  color: var(--agua-primary);
+  font-size: 1.2rem;
+  font-weight: 700;
+  background: var(--agua-bg-primary);
+  padding: 10px 15px;
+  border-radius: 10px;
+  border: 2px solid var(--agua-primary);
+}
+
+/* Total section */
+.total-section {
+  margin-top: 25px;
+  padding-top: 20px;
+  border-top: 2px solid var(--agua-border);
+}
+
+.total-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: linear-gradient(135deg, var(--agua-primary), var(--agua-secondary));
+  color: white;
+  padding: 20px 25px;
+  border-radius: 12px;
+  box-shadow: var(--agua-shadow-md);
+}
+
+.total-label {
+  font-size: 1.2rem;
+  font-weight: 600;
+}
+
+.total-amount {
+  font-size: 1.8rem;
+  font-weight: 800;
+}
+
+/* Carrito vacío */
+.empty-cart {
+  text-align: center;
+  padding: 40px 20px;
+  color: var(--agua-text-muted);
+}
+
+.empty-icon {
+  font-size: 3rem;
+  color: var(--agua-text-muted);
+  margin-bottom: 15px;
+  opacity: 0.5;
+}
+
+/* Input group */
+.input-group {
+  margin-bottom: 20px;
+}
+
+.form-input {
+  width: 100%;
+  padding: 16px 20px;
+  border: 2px solid var(--agua-border);
+  border-radius: 12px;
+  font-size: 1rem;
+  color: var(--agua-text-primary);
+  background: var(--agua-bg-primary);
+  transition: var(--agua-transition);
+  box-sizing: border-box;
+}
+
+.form-input:focus {
+  outline: none;
+  border-color: var(--agua-border-focus);
+  box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.1);
+  transform: translateY(-2px);
+}
+
+.form-input::placeholder {
+  color: var(--agua-text-muted);
+  font-style: italic;
+}
+
+.input-helper {
   display: block;
-  font-size: 2.5rem;
-  margin-bottom: 16px;
-  opacity: 0.6;
+  margin-top: 8px;
+  font-size: 0.9rem;
+  color: var(--agua-text-muted);
+  font-style: italic;
 }
 
-/* Animaciones de entrada suaves */
-@keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+/* Opciones de pago */
+.payment-options {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  margin-bottom: 20px;
 }
 
-.factura-final-bg > * {
-  animation: fadeInUp 0.6s ease-out;
+.factura-final-bg select {
+  background: linear-gradient(145deg, var(--agua-blanco), var(--celeste-muy-claro)) !important;
+  border: 2px solid var(--celeste-claro) !important;
+  border-radius: 12px !important;
+  padding: 16px 20px !important; 
+  font-size: 1rem !important;
+  color: #0EA5E9 !important;
+  /* ...más estilos... */
 }
