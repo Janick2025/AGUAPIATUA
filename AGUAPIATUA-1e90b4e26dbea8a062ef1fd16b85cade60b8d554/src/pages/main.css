@@ -1,0 +1,260 @@
+/* ===== SISTEMA RESPONSIVE GLOBAL PIATUA ===== */
+
+/* Variables responsive globales */
+:root {
+  /* Breakpoints */
+  --bp-xs: 320px;
+  --bp-sm: 480px;
+  --bp-md: 768px;
+  --bp-lg: 1024px;
+  --bp-xl: 1200px;
+  --bp-xxl: 1400px;
+  
+  /* Espaciado responsive */
+  --space-xs: clamp(4px, 1vw, 8px);
+  --space-sm: clamp(8px, 2vw, 16px);
+  --space-md: clamp(16px, 4vw, 24px);
+  --space-lg: clamp(24px, 6vw, 32px);
+  --space-xl: clamp(32px, 8vw, 48px);
+  
+  /* Tipografía responsive */
+  --font-xs: clamp(0.75rem, 2vw, 0.875rem);
+  --font-sm: clamp(0.875rem, 2.5vw, 1rem);
+  --font-md: clamp(1rem, 3vw, 1.125rem);
+  --font-lg: clamp(1.125rem, 3.5vw, 1.5rem);
+  --font-xl: clamp(1.5rem, 4vw, 2rem);
+  --font-xxl: clamp(2rem, 6vw, 3rem);
+}
+
+/* ===== UTILIDADES RESPONSIVE GLOBALES ===== */
+
+/* Contenedores responsive */
+.container-responsive {
+  width: 100%;
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 var(--space-md);
+}
+
+@media (max-width: 768px) {
+  .container-responsive {
+    padding: 0 var(--space-sm);
+  }
+}
+
+@media (max-width: 480px) {
+  .container-responsive {
+    padding: 0 var(--space-xs);
+  }
+}
+
+/* Grid responsive */
+.grid-responsive {
+  display: grid;
+  gap: var(--space-md);
+}
+
+.grid-1 { grid-template-columns: 1fr; }
+.grid-2 { grid-template-columns: repeat(2, 1fr); }
+.grid-3 { grid-template-columns: repeat(3, 1fr); }
+.grid-4 { grid-template-columns: repeat(4, 1fr); }
+
+@media (max-width: 1024px) {
+  .grid-4 { grid-template-columns: repeat(2, 1fr); }
+  .grid-3 { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (max-width: 768px) {
+  .grid-4, .grid-3, .grid-2 { 
+    grid-template-columns: 1fr; 
+  }
+}
+
+/* Flex responsive */
+.flex-responsive {
+  display: flex;
+  gap: var(--space-md);
+  flex-wrap: wrap;
+}
+
+.flex-center {
+  justify-content: center;
+  align-items: center;
+}
+
+.flex-between {
+  justify-content: space-between;
+  align-items: center;
+}
+
+@media (max-width: 768px) {
+  .flex-responsive {
+    flex-direction: column;
+    gap: var(--space-sm);
+  }
+}
+
+/* Espaciado responsive */
+.p-responsive { padding: var(--space-md); }
+.px-responsive { padding-left: var(--space-md); padding-right: var(--space-md); }
+.py-responsive { padding-top: var(--space-md); padding-bottom: var(--space-md); }
+.m-responsive { margin: var(--space-md); }
+.mx-responsive { margin-left: var(--space-md); margin-right: var(--space-md); }
+.my-responsive { margin-top: var(--space-md); margin-bottom: var(--space-md); }
+
+@media (max-width: 768px) {
+  .p-responsive { padding: var(--space-sm); }
+  .px-responsive { padding-left: var(--space-sm); padding-right: var(--space-sm); }
+  .py-responsive { padding-top: var(--space-sm); padding-bottom: var(--space-sm); }
+  .m-responsive { margin: var(--space-sm); }
+  .mx-responsive { margin-left: var(--space-sm); margin-right: var(--space-sm); }
+  .my-responsive { margin-top: var(--space-sm); margin-bottom: var(--space-sm); }
+}
+
+/* Tipografía responsive */
+.text-xs { font-size: var(--font-xs); }
+.text-sm { font-size: var(--font-sm); }
+.text-md { font-size: var(--font-md); }
+.text-lg { font-size: var(--font-lg); }
+.text-xl { font-size: var(--font-xl); }
+.text-xxl { font-size: var(--font-xxl); }
+
+/* Visibilidad responsive */
+.hide-mobile { display: block; }
+.show-mobile { display: none; }
+.hide-tablet { display: block; }
+.show-tablet { display: none; }
+.hide-desktop { display: block; }
+.show-desktop { display: none; }
+
+@media (max-width: 768px) {
+  .hide-mobile { display: none !important; }
+  .show-mobile { display: block !important; }
+}
+
+@media (max-width: 1024px) and (min-width: 769px) {
+  .hide-tablet { display: none !important; }
+  .show-tablet { display: block !important; }
+}
+
+@media (min-width: 1025px) {
+  .hide-desktop { display: none !important; }
+  .show-desktop { display: block !important; }
+}
+
+/* ===== IONIC RESPONSIVE OVERRIDES ===== */
+
+/* Buttons responsive */
+ion-button {
+  --padding-start: var(--space-md);
+  --padding-end: var(--space-md);
+  --padding-top: var(--space-sm);
+  --padding-bottom: var(--space-sm);
+}
+
+@media (max-width: 768px) {
+  ion-button {
+    --padding-start: var(--space-sm);
+    --padding-end: var(--space-sm);
+    min-height: 44px; /* Mejor para touch */
+  }
+}
+
+/* Cards responsive */
+ion-card {
+  margin: var(--space-sm);
+}
+
+@media (max-width: 768px) {
+  ion-card {
+    margin: var(--space-xs);
+  }
+}
+
+/* Headers responsive */
+ion-header ion-toolbar {
+  --min-height: 56px;
+}
+
+@media (max-width: 768px) {
+  ion-header ion-toolbar {
+    --min-height: 48px;
+  }
+}
+
+/* Content responsive */
+ion-content {
+  --padding-start: var(--space-md);
+  --padding-end: var(--space-md);
+  --padding-top: var(--space-sm);
+  --padding-bottom: var(--space-sm);
+}
+
+@media (max-width: 768px) {
+  ion-content {
+    --padding-start: var(--space-sm);
+    --padding-end: var(--space-sm);
+  }
+}
+
+/* ===== MEJORAS DE ACCESIBILIDAD MÓVIL ===== */
+
+/* Área de toque mínima */
+@media (pointer: coarse) {
+  button, 
+  ion-button, 
+  .clickable {
+    min-height: 44px;
+    min-width: 44px;
+  }
+}
+
+/* Mejor contraste en pantallas pequeñas */
+@media (max-width: 480px) {
+  * {
+    -webkit-text-size-adjust: 100%;
+    -ms-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+  }
+}
+
+/* Deshabilituar zoom en inputs en iOS */
+@media screen and (-webkit-min-device-pixel-ratio: 0) {
+  select, 
+  textarea, 
+  input[type="text"], 
+  input[type="password"], 
+  input[type="datetime"], 
+  input[type="datetime-local"], 
+  input[type="date"], 
+  input[type="month"], 
+  input[type="time"], 
+  input[type="week"], 
+  input[type="number"], 
+  input[type="email"], 
+  input[type="url"], 
+  input[type="search"], 
+  input[type="tel"], 
+  input[type="color"] {
+    font-size: 16px;
+  }
+}
+
+/* ===== ANIMACIONES RESPONSIVE ===== */
+
+/* Reducir animaciones en dispositivos de bajos recursos */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Animaciones más sutiles en móviles */
+@media (max-width: 768px) {
+  * {
+    animation-duration: 0.3s !important;
+    transition-duration: 0.2s !important;
+  }
+}

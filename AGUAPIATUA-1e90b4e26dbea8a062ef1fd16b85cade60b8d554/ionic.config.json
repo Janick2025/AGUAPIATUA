@@ -1,0 +1,9 @@
+{
+  "name": "aguapiatua",
+  "integrations": {
+    "capacitor": {}
+  },
+  "type": "react-vite",
+  "root": ".",
+  "sourceRoot": "src"
+}
