@@ -327,3 +327,119 @@
     bottom: 12px !important;
   }
 }
+
+/* ===== ESTILOS DEL MENÚ LATERAL ===== */
+
+/* Header del menú */
+.menu-toolbar {
+  --background: linear-gradient(135deg, #0EA5E9, #38BDF8);
+  --color: #ffffff;
+  font-weight: 700;
+}
+
+.menu-toolbar ion-title {
+  font-size: 1.1rem;
+  font-weight: 800;
+  text-align: center;
+  color: #ffffff;
+}
+
+/* Contenido del menú */
+ion-menu ion-content {
+  --background: #1e293b;
+  --color: #ffffff;
+}
+
+/* Lista del menú */
+.menu-list {
+  background: #1e293b !important;
+  padding: 16px 0 !important;
+}
+
+/* Items del menú - Clase específica */
+.menu-item {
+  --background: transparent !important;
+  --color: #ffffff !important;
+  --border-color: transparent !important;
+  margin: 4px 12px !important;
+  border-radius: 12px !important;
+  font-weight: 600 !important;
+  transition: all 0.2s ease !important;
+  color: #ffffff !important;
+}
+
+/* Hover en items del menú */
+.menu-item:hover {
+  --background: rgba(56, 189, 248, 0.15) !important;
+  --color: #38BDF8 !important;
+  transform: translateX(4px) !important;
+  color: #38BDF8 !important;
+}
+
+/* Iconos del menú */
+.menu-icon {
+  color: #38BDF8 !important;
+  margin-right: 12px !important;
+  font-size: 1.2rem !important;
+}
+
+/* Hover en iconos */
+.menu-item:hover .menu-icon {
+  color: #60A5FA !important;
+}
+
+/* Item de cerrar sesión - especial */
+.menu-item-danger {
+  --color: #ffffff !important;
+  border-top: 1px solid rgba(220, 38, 38, 0.2) !important;
+  margin-top: 16px !important;
+  padding-top: 8px !important;
+  color: #ffffff !important;
+}
+
+.menu-item-danger:hover {
+  --background: rgba(220, 38, 38, 0.15) !important;
+  --color: #f87171 !important;
+  color: #f87171 !important;
+}
+
+.menu-icon-danger {
+  color: #ef4444 !important;
+  margin-right: 12px !important;
+  font-size: 1.2rem !important;
+}
+
+.menu-item-danger:hover .menu-icon-danger {
+  color: #f87171 !important;
+}
+
+/* ===== ESTILOS LIMPIOS Y ORGANIZADOS ===== */
+
+/* Iconos del menú - selector específico */
+ion-menu ion-item ion-icon {
+  color: #0EA5E9 !important;
+  margin-right: 12px;
+  font-size: 1.2rem;
+}
+
+ion-menu ion-item:hover {
+  --background: rgba(14, 165, 233, 0.15);
+  --color: #0284C7 !important;
+  transform: translateX(4px);
+}
+
+
+
+/* Responsive para el menú */
+@media (max-width: 768px) {
+  .menu-item {
+    margin: 2px 8px !important;
+    padding: 12px 16px !important;
+  }
+  
+  .menu-icon,
+  .menu-icon-danger {
+    font-size: 1.1rem !important;
+    margin-right: 10px !important;
+  }
+}

@@ -1,5 +1,7 @@
 {
-  "name": "piatua 100%",
-  "integrations": {},
+  "name": "mi-ionic-capacitor-app",
+  "integrations": {
+    "capacitor": {}
+  },
   "type": "react-vite"
 }

@@ -3,16 +3,15 @@ import { useHistory } from 'react-router-dom';
 import './Home.css';
 
 import {
-  IonButtons, IonContent, IonHeader, IonMenu, IonMenuButton, IonPage,
+  IonButtons, IonContent, IonHeader, IonPage,
   IonTitle, IonToolbar, IonCard, IonCardHeader, IonCardTitle,
-  IonCardContent, IonBadge, IonIcon, IonButton, IonList, IonItem,
+  IonCardContent, IonBadge, IonIcon, IonButton,
   IonToast
 } from '@ionic/react';
 
 import {
   cartOutline, star, addOutline, removeOutline, closeOutline, trashOutline,
-  personCircleOutline, briefcaseOutline, personOutline, homeOutline,
-  logOutOutline, settingsOutline
+  logOutOutline
 } from 'ionicons/icons';
 
 // Tipos TypeScript optimizados
@@ -326,46 +325,17 @@ export default function Home() {
 
   return (
     <>
-      {/* Menú lateral izquierdo */}
-      <IonMenu contentId="main-content" menuId="main-menu" side="start">
-        <IonHeader>
-          <IonToolbar className="menu-toolbar">
-            <IonTitle>Menú Principal</IonTitle>
-          </IonToolbar>
-        </IonHeader>
-        <IonContent className="ion-padding">
-          <IonList>
-            <IonItem button onClick={() => history.push('/home')}>
-              <IonIcon icon={homeOutline} slot="start" />
-              Inicio
-            </IonItem>
-            <IonItem button>
-              <IonIcon icon={personCircleOutline} slot="start" />
-              Perfil ({userType})
-            </IonItem>
-            <IonItem button>
-              <IonIcon icon={briefcaseOutline} slot="start" />
-              Mis Pedidos
-            </IonItem>
-            <IonItem button>
-              <IonIcon icon={settingsOutline} slot="start" />
-              Configuración
-            </IonItem>
-            <IonItem button onClick={handleLogout} color="danger">
-              <IonIcon icon={logOutOutline} slot="start" />
-              Cerrar Sesión
-            </IonItem>
-          </IonList>
-        </IonContent>
-      </IonMenu>
+
 
       {/* Contenido principal */}
-      <IonPage id="main-content">
+      <IonPage>
         {/* Header */}
         <IonHeader>
           <IonToolbar className="home-toolbar">
             <IonButtons slot="start">
-              <IonMenuButton menu="main-menu" />
+              <IonButton fill="clear" onClick={handleLogout} color="light">
+                <IonIcon icon={logOutOutline} />
+              </IonButton>
             </IonButtons>
 
             <IonTitle>

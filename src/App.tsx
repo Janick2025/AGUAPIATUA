@@ -7,6 +7,7 @@ import Login from './pages/Login';
 import FacturaFinal from './pages/FacturaFinal';
 import ComprobantePedido from './pages/ComprobantePedido';
 import AdminDashboard from './pages/AdminDashboard';
+import VendedorRepartidor from './pages/vendedor';
 // Componente de ruta protegida
 const ProtectedRoute: React.FC<{ 
   children: React.ReactNode; 
@@ -80,6 +81,11 @@ const App: React.FC = () => (
         <Route exact path="/admin-dashboard">
           <ProtectedRoute allowedUserTypes={['administrador']}>
             <AdminDashboard />
+          </ProtectedRoute>
+        </Route>
+        <Route exact path="/vendedor-dashboard">
+          <ProtectedRoute allowedUserTypes={['vendedor']}>
+            <VendedorRepartidor />
           </ProtectedRoute>
         </Route>
         <Route exact path="/factura-final" render={({ location, history }) => {

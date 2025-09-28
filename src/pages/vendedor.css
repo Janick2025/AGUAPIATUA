@@ -1,0 +1,413 @@
+/* ===== PÁGINA DEL REPARTIDOR/VENDEDOR ===== */
+
+/* Variables de colores para embotelladora */
+:root {
+  --agua-primary: #0EA5E9;
+  --agua-secondary: #38BDF8;
+  --agua-success: #10B981;
+  --agua-warning: #F59E0B;
+  --agua-danger: #EF4444;
+  --agua-dark: #1E293B;
+  --agua-light: #F8FAFC;
+}
+
+/* Fondo principal */
+.vendedor-bg {
+  --background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+  min-height: 100vh;
+}
+
+/* Toolbar del vendedor */
+.vendedor-toolbar {
+  --background: linear-gradient(90deg, var(--agua-primary), var(--agua-secondary));
+  --color: #ffffff;
+  font-weight: 700;
+}
+
+/* Pantalla de carga */
+.loading-content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, var(--agua-dark), var(--agua-primary));
+  color: white;
+}
+
+.loading-container {
+  text-align: center;
+  max-width: 300px;
+}
+
+.loading-icon {
+  font-size: 4rem;
+  margin-bottom: 16px;
+  color: var(--agua-secondary);
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.1); opacity: 0.8; }
+}
+
+/* Header del vendedor */
+.vendedor-header {
+  background: linear-gradient(135deg, var(--agua-primary), var(--agua-secondary));
+  padding: 20px 16px;
+  color: white;
+  margin-bottom: 16px;
+}
+
+.vendedor-info {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.vendedor-avatar {
+  width: 60px;
+  height: 60px;
+  background: rgba(255, 255, 255, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.vendedor-avatar ion-icon {
+  font-size: 2rem;
+  color: white;
+}
+
+.vendedor-info h2 {
+  margin: 0;
+  font-size: 1.4rem;
+  font-weight: 800;
+}
+
+.vendedor-info p {
+  margin: 4px 0 0 0;
+  opacity: 0.9;
+  font-size: 0.9rem;
+  text-transform: capitalize;
+}
+
+/* Grid de estadísticas */
+.stats-grid {
+  padding: 0 8px;
+  margin-bottom: 16px;
+}
+
+.stat-card {
+  background: white;
+  border-radius: 12px;
+  padding: 16px 8px;
+  text-align: center;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  transition: transform 0.2s ease;
+  border-left: 4px solid transparent;
+}
+
+.stat-card:hover {
+  transform: translateY(-2px);
+}
+
+.stat-card ion-icon {
+  font-size: 1.5rem;
+  margin-bottom: 8px;
+}
+
+.stat-number {
+  font-size: 1.8rem;
+  font-weight: 800;
+  margin: 4px 0;
+}
+
+.stat-label {
+  font-size: 0.75rem;
+  color: #64748B;
+  font-weight: 600;
+}
+
+/* Colores específicos para cada estadística */
+.stat-card.pending {
+  border-left-color: var(--agua-warning);
+}
+
+.stat-card.pending ion-icon {
+  color: var(--agua-warning);
+}
+
+.stat-card.in-route {
+  border-left-color: var(--agua-primary);
+}
+
+.stat-card.in-route ion-icon {
+  color: var(--agua-primary);
+}
+
+.stat-card.delivered {
+  border-left-color: var(--agua-success);
+}
+
+.stat-card.delivered ion-icon {
+  color: var(--agua-success);
+}
+
+.stat-card.sales {
+  border-left-color: var(--agua-secondary);
+}
+
+.stat-card.sales ion-icon {
+  color: var(--agua-secondary);
+}
+
+/* Sección de pedidos */
+.pedidos-section {
+  padding: 0 16px;
+}
+
+.pedidos-section h3 {
+  color: var(--agua-dark);
+  font-size: 1.2rem;
+  font-weight: 700;
+  margin: 16px 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.pedidos-section h3 ion-icon {
+  color: var(--agua-primary);
+}
+
+/* Cards de pedidos */
+.pedido-card {
+  margin-bottom: 16px;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  border-left: 6px solid transparent;
+  transition: all 0.3s ease;
+}
+
+.pedido-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+}
+
+/* Estados de pedidos */
+.pedido-card.pendiente {
+  border-left-color: var(--agua-warning);
+}
+
+.pedido-card.en_ruta {
+  border-left-color: var(--agua-primary);
+}
+
+.pedido-card.entregado {
+  border-left-color: var(--agua-success);
+  opacity: 0.8;
+}
+
+.pedido-card.cancelado {
+  border-left-color: var(--agua-danger);
+  opacity: 0.7;
+}
+
+/* Header del pedido */
+.pedido-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.cliente-nombre {
+  color: var(--agua-dark);
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin: 0;
+}
+
+.pedido-id {
+  color: #64748B;
+  font-size: 0.85rem;
+  font-weight: 500;
+  margin-top: 4px;
+}
+
+.pedido-badges {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  align-items: flex-end;
+}
+
+/* Información de entrega */
+.entrega-info {
+  margin: 16px 0;
+}
+
+.info-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+  font-size: 0.9rem;
+  color: #475569;
+}
+
+.info-row ion-icon {
+  color: var(--agua-primary);
+  font-size: 1rem;
+  flex-shrink: 0;
+}
+
+/* Productos del pedido */
+.productos-resumen {
+  background: #f8fafc;
+  border-radius: 8px;
+  padding: 12px;
+  margin: 12px 0;
+}
+
+.productos-resumen h4 {
+  margin: 0 0 8px 0;
+  color: var(--agua-dark);
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.producto-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 4px 0;
+  font-size: 0.85rem;
+  color: #475569;
+}
+
+.total-pedido {
+  border-top: 1px solid #e2e8f0;
+  padding-top: 8px;
+  margin-top: 8px;
+  text-align: right;
+  color: var(--agua-dark);
+}
+
+/* Notas especiales */
+.notas-especiales {
+  background: #fef3c7;
+  border: 1px solid #f59e0b;
+  border-radius: 8px;
+  padding: 8px 12px;
+  margin: 12px 0;
+  font-size: 0.85rem;
+  color: #92400e;
+}
+
+/* Acciones del pedido */
+.pedido-acciones {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 16px;
+}
+
+.pedido-acciones ion-button {
+  --border-radius: 8px;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .stats-grid ion-col {
+    margin-bottom: 8px;
+  }
+  
+  .stat-card {
+    padding: 12px 6px;
+  }
+  
+  .stat-number {
+    font-size: 1.5rem;
+  }
+  
+  .stat-label {
+    font-size: 0.7rem;
+  }
+  
+  .pedido-header {
+    flex-direction: column;
+    gap: 8px;
+  }
+  
+  .pedido-badges {
+    flex-direction: row;
+    align-items: flex-start;
+  }
+  
+  .pedido-acciones {
+    justify-content: center;
+  }
+  
+  .pedido-acciones ion-button {
+    min-width: 80px;
+  }
+}
+
+@media (max-width: 480px) {
+  .vendedor-header {
+    padding: 16px 12px;
+  }
+  
+  .vendedor-info h2 {
+    font-size: 1.2rem;
+  }
+  
+  .pedidos-section {
+    padding: 0 12px;
+  }
+  
+  .info-row {
+    font-size: 0.8rem;
+  }
+  
+  .producto-item {
+    font-size: 0.8rem;
+  }
+}
+
+/* Animaciones suaves */
+.pedido-card {
+  animation: slideInUp 0.5s ease-out;
+}
+
+@keyframes slideInUp {
+  0% {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  100% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* Estados de chips mejorados */
+ion-chip {
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Efectos hover para botones */
+ion-button:hover {
+  transform: translateY(-1px);
+}
+
+/* Mejoras para el refresher */
+ion-refresher-content {
+  color: var(--agua-primary);
+}
