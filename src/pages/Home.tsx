@@ -1,12 +1,13 @@
 import React, { useMemo, useState, useEffect } from 'react';
 import { useHistory } from 'react-router-dom';
+import ApiService from '../services/apiService';
 import './Home.css';
 
 import {
   IonButtons, IonContent, IonHeader, IonPage,
   IonTitle, IonToolbar, IonCard, IonCardHeader, IonCardTitle,
   IonCardContent, IonBadge, IonIcon, IonButton,
-  IonToast
+  IonToast, IonSpinner
 } from '@ionic/react';
 
 import {
@@ -26,6 +27,7 @@ type Producto = {
   rating?: number;
   reviews?: number;
   categoria?: string;
+  stock?: number;
 };
 
 type CartItem = { 
@@ -33,90 +35,28 @@ type CartItem = {
   nombre: string; 
   precio: number; 
   imagen: string; 
-  qty: number 
+  qty: number;
+  stock?: number;
 };
-
-// Datos de productos optimizados
-const productos: Producto[] = [
-  { 
-    id: 1, 
-    nombre: 'Agua Piatua 500ml', 
-    precio: 0.50, 
-    descripcion: 'Pequeña, práctica y siempre contigo. Perfecta para llevar a cualquier lugar.', 
-    imagen: 'agua.jpg',
-    rating: 4.8,
-    reviews: 124,
-    categoria: 'individual'
-  },
-  { 
-    id: 2, 
-    nombre: 'Agua Piatua 1L', 
-    precio: 1.00, 
-    descripcion: 'Un litro de pureza, un litro de vida. Ideal para el hogar y oficina.', 
-    imagen: 'litro.jpg',
-    rating: 4.9,
-    reviews: 89,
-    categoria: 'individual'
-  },
-  { 
-    id: 3, 
-    nombre: 'Agua Piatua Six Pack', 
-    precio: 2.50, 
-   
-    descripcion: 'Tu fuente de frescura en grande. Perfecto para familias.', 
-    imagen: 'Six_Pag.jpg',
-    rating: 4.7,
-    reviews: 156,
-    categoria: 'pack'
-  },
-  { 
-    id: 4, 
-    nombre: 'Agua Piatua 12 Unidades', 
-    precio: 2.75, 
-    descripcion: 'Abastecimiento completo para tu hogar u oficina.', 
-    imagen: '12U.jpg',
-    rating: 4.6,
-    reviews: 67,
-    categoria: 'pack'
-  },
-  { 
-    id: 5, 
-    nombre: 'Agua Piatua Hielo en Cubos', 
-    precio: 1.80, 
-    descripcion: 'Hielo puro para tus bebidas más refrescantes.', 
-    imagen: 'hielo.jpg',
-    rating: 4.5,
-    reviews: 92,
-    categoria: 'hielo'
-  },
-  { 
-    id: 6, 
-    nombre: 'Agua Piatua 20L', 
-    precio: 2.50, 
-    descripcion: 'La máxima capacidad para tu dispensador. Agua pura en cantidad.', 
-    imagen: 'garrafa.jpg',
-    rating: 4.9,
-    reviews: 203,
-    categoria: 'garrafa'
-  },
-];
 
 export default function Home() {
   const history = useHistory();
   
   // Estados principales
+  const [productos, setProductos] = useState<Producto[]>([]);
   const [cart, setCart] = useState<CartItem[]>([]);
   const [showCart, setShowCart] = useState(false);
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
   const [isLoading, setIsLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
 
   // Estados para efectos visuales
   const [showContent, setShowContent] = useState(false);
 
   // Datos del usuario (desde localStorage)
-  const userType = localStorage.getItem('userType') || 'cliente';
-  const username = localStorage.getItem('username') || 'Usuario';
+  const userData = JSON.parse(localStorage.getItem('aguapiatua_user') || '{}');
+  const userName = userData.nombre || 'Usuario';
 
   // Cálculos optimizados con useMemo
   const totalItems = useMemo(() => 
@@ -154,13 +94,42 @@ export default function Home() {
       }
     }
 
-    // Simular carga inicial
-    const loadTimer = setTimeout(() => {
-      setIsLoading(false);
-      setShowContent(true);
-    }, 800);
+    // Cargar productos desde la API
+    const loadProducts = async () => {
+      try {
+        console.log('Iniciando carga de productos...');
+        const products = await ApiService.getProducts();
+        console.log('Productos cargados:', products);
 
-    return () => clearTimeout(loadTimer);
+        if (!products || products.length === 0) {
+          console.warn('No se encontraron productos');
+          setProductos([]);
+        } else {
+          setProductos(products.map((p: any) => ({
+            id: p.id,
+            nombre: p.nombre,
+            precio: Number(p.precio),
+            descripcion: p.descripcion || '',
+            imagen: p.imagen || '/agua.jpg',
+            categoria: p.categoria,
+            stock: p.stock,
+            rating: 5,
+            reviews: Math.floor(Math.random() * 100) + 10
+          })));
+        }
+        setLoadError(false);
+      } catch (error: any) {
+        console.error('Error loading products:', error);
+        setLoadError(true);
+        showMessage('Error al cargar productos: ' + (error.message || 'Error desconocido'));
+      } finally {
+        console.log('Finalizando carga...');
+        setIsLoading(false);
+        setShowContent(true);
+      }
+    };
+
+    loadProducts();
   }, [history]);
 
   // Guardar carrito en localStorage cuando cambie
@@ -369,13 +338,37 @@ export default function Home() {
           {generateSparkles()}
 
           {/* Grid de productos */}
-          <div 
+          <div
             className="productos-grid"
-            style={{ 
-              opacity: showContent ? 1 : 0, 
-              transition: 'opacity 1s ease-out' 
+            style={{
+              opacity: showContent ? 1 : 0,
+              transition: 'opacity 1s ease-out'
             }}
           >
+            {loadError && (
+              <div style={{
+                gridColumn: '1 / -1',
+                textAlign: 'center',
+                padding: '40px',
+                color: 'white'
+              }}>
+                <h2>⚠️ Error al cargar productos</h2>
+                <p>Por favor, verifica tu conexión e intenta nuevamente.</p>
+              </div>
+            )}
+
+            {!loadError && productos.length === 0 && !isLoading && (
+              <div style={{
+                gridColumn: '1 / -1',
+                textAlign: 'center',
+                padding: '40px',
+                color: 'white'
+              }}>
+                <h2>📦 No hay productos disponibles</h2>
+                <p>Pronto agregaremos productos al catálogo.</p>
+              </div>
+            )}
+
             {productos.map((producto, index) => (
               <IonCard key={producto.id} className="producto-card ecommerce">
                 <div className="img-wrap">

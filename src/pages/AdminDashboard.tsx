@@ -2,8 +2,9 @@
 import React, { useState, useEffect } from 'react';
 import { useHistory } from 'react-router-dom';
 import {
-  IonIcon, IonToast, IonAlert, IonPage, IonContent 
+  IonIcon, IonToast, IonAlert, IonPage, IonContent
 } from '@ionic/react';
+import ApiService from '../services/apiService';
 import {
   gridOutline, peopleOutline, cubeOutline, analyticsOutline,
   settingsOutline, logOutOutline, menuOutline, searchOutline,
@@ -137,7 +138,8 @@ const AdminInterface: React.FC = () => {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [usuarios, setUsuarios] = useState<Usuario[]>(usuariosIniciales);
-  const [productos, setProductos] = useState<Producto[]>(productosIniciales);
+  const [productos, setProductos] = useState<Producto[]>([]);
+  const [isLoadingData, setIsLoadingData] = useState(true);
   
   // Estados para formularios
   const [nuevoUsuario, setNuevoUsuario] = useState({
@@ -155,6 +157,13 @@ const AdminInterface: React.FC = () => {
     categoria: '',
     stock: 0
   });
+
+  const [editingProduct, setEditingProduct] = useState<Producto | null>(null);
+  const [showEditModal, setShowEditModal] = useState(false);
+
+  const [editingUser, setEditingUser] = useState<Usuario | null>(null);
+  const [showEditUserModal, setShowEditUserModal] = useState(false);
+  const [newPassword, setNewPassword] = useState('');
   
   // Estados de UI
   const [showToast, setShowToast] = useState(false);
@@ -165,15 +174,61 @@ const AdminInterface: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   
-  // Verificar autenticación
+  // Verificar autenticación y cargar datos
   useEffect(() => {
     const userType = localStorage.getItem('userType');
     const isAuthenticated = localStorage.getItem('isAuthenticated');
-    
+
     if (!isAuthenticated || userType !== 'administrador') {
       showMessage('Acceso denegado. Solo administradores.', 'danger');
       setTimeout(() => history.push('/login'), 2000);
+      return;
     }
+
+    // Cargar datos desde la API
+    const loadData = async () => {
+      try {
+        console.log('Cargando datos del admin...');
+
+        // Cargar productos
+        const productsData = await ApiService.getProducts();
+        console.log('Productos obtenidos:', productsData);
+
+        setProductos(productsData.map((p: any) => ({
+          id: p.id,
+          nombre: p.nombre,
+          precio: Number(p.precio),
+          descripcion: p.descripcion || '',
+          imagen: p.imagen || 'default.jpg',
+          categoria: p.categoria || 'general',
+          stock: p.stock || 0,
+          fechaCreacion: p.fecha_creacion,
+          activo: p.activo,
+          ventas: Math.floor(Math.random() * 1000)
+        })));
+
+        // Cargar usuarios
+        const usersData = await ApiService.getUsers();
+        console.log('Usuarios obtenidos:', usersData);
+
+        setUsuarios(usersData.map((u: any) => ({
+          id: u.id,
+          username: u.nombre,
+          email: u.email,
+          tipo: u.tipo_usuario === 'Vendedor' ? 'vendedor' : 'cliente',
+          fechaCreacion: u.fecha_registro?.split('T')[0] || '',
+          estado: u.activo ? 'activo' : 'inactivo',
+          ultimoLogin: u.ultimo_login
+        })));
+      } catch (error) {
+        console.error('Error loading data:', error);
+        showMessage('Error al cargar datos', 'danger');
+      } finally {
+        setIsLoadingData(false);
+      }
+    };
+
+    loadData();
   }, [history]);
   
   // Función para mostrar mensajes
@@ -199,36 +254,97 @@ const AdminInterface: React.FC = () => {
       showMessage('Por favor complete todos los campos', 'warning');
       return;
     }
-    
-    if (usuarios.some(u => u.username === nuevoUsuario.username)) {
-      showMessage('El nombre de usuario ya existe', 'danger');
+
+    if (nuevoUsuario.password.length < 6) {
+      showMessage('La contraseña debe tener al menos 6 caracteres', 'warning');
       return;
     }
-    
+
     setIsLoading(true);
-    
-    setTimeout(() => {
-      const usuario: Usuario = {
-        id: usuarios.length + 1,
-        username: nuevoUsuario.username,
+
+    try {
+      const response = await ApiService.register({
+        nombre: nuevoUsuario.username,
         email: nuevoUsuario.email,
+        password: nuevoUsuario.password,
+        tipo_usuario: nuevoUsuario.tipo === 'vendedor' ? 'Vendedor' : 'Cliente'
+      });
+
+      const newUser: Usuario = {
+        id: response.user.id,
+        username: response.user.nombre,
+        email: response.user.email,
         tipo: nuevoUsuario.tipo,
         fechaCreacion: new Date().toISOString().split('T')[0],
         estado: 'activo'
       };
-      
-      setUsuarios([...usuarios, usuario]);
+
+      setUsuarios([...usuarios, newUser]);
       setNuevoUsuario({ username: '', email: '', password: '', tipo: 'vendedor' });
-      showMessage(`Usuario ${usuario.username} creado exitosamente`, 'success');
+      showMessage(`Usuario ${newUser.username} creado exitosamente`, 'success');
+    } catch (error: any) {
+      console.error('Error creating user:', error);
+      showMessage(error.message || 'Error al crear usuario', 'danger');
+    } finally {
       setIsLoading(false);
-    }, 1000);
+    }
   };
   
+  // Función para abrir modal de edición de usuario
+  const openEditUserModal = (usuario: Usuario) => {
+    setEditingUser(usuario);
+    setNewPassword('');
+    setShowEditUserModal(true);
+  };
+
+  // Función para actualizar usuario
+  const actualizarUsuario = async () => {
+    if (!editingUser) return;
+
+    if (!editingUser.username || !editingUser.email) {
+      showMessage('Por favor complete los campos obligatorios', 'warning');
+      return;
+    }
+
+    setIsLoading(true);
+
+    try {
+      const updateData: any = {
+        nombre: editingUser.username,
+        email: editingUser.email,
+        tipo_usuario: editingUser.tipo === 'vendedor' ? 'Vendedor' : 'Cliente',
+        activo: editingUser.estado === 'activo'
+      };
+
+      // Solo incluir password si se ingresó una nueva
+      if (newPassword && newPassword.length >= 6) {
+        updateData.password = newPassword;
+      }
+
+      await ApiService.updateUser(editingUser.id, updateData);
+
+      // Actualizar la lista local
+      setUsuarios(usuarios.map(u =>
+        u.id === editingUser.id ? editingUser : u
+      ));
+
+      showMessage(`Usuario ${editingUser.username} actualizado exitosamente`, 'success');
+      setShowEditUserModal(false);
+      setEditingUser(null);
+      setNewPassword('');
+    } catch (error: any) {
+      console.error('Error updating user:', error);
+      showMessage(error.message || 'Error al actualizar usuario', 'danger');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   // Función para eliminar usuario
   const eliminarUsuario = (id: number) => {
     const usuario = usuarios.find(u => u.id === id);
     if (!usuario) return;
-    
+
     setAlertConfig({
       isOpen: true,
       header: 'Confirmar eliminación',
@@ -253,39 +369,112 @@ const AdminInterface: React.FC = () => {
       showMessage('Por favor complete los campos obligatorios', 'warning');
       return;
     }
-    
+
     setIsLoading(true);
-    
-    setTimeout(() => {
-      const producto: Producto = {
-        id: productos.length + 1,
+
+    try {
+      const response = await ApiService.createProduct({
         nombre: nuevoProducto.nombre,
         precio: nuevoProducto.precio,
         descripcion: nuevoProducto.descripcion,
-        imagen: nuevoProducto.imagen || 'default.jpg',
+        imagen: nuevoProducto.imagen || '/agua.jpg',
         categoria: nuevoProducto.categoria || 'general',
-        stock: nuevoProducto.stock,
+        stock: nuevoProducto.stock
+      });
+
+      const newProduct: Producto = {
+        id: response.product.id,
+        nombre: response.product.nombre,
+        precio: response.product.precio,
+        descripcion: response.product.descripcion,
+        imagen: response.product.imagen,
+        categoria: response.product.categoria,
+        stock: response.product.stock,
         fechaCreacion: new Date().toISOString().split('T')[0],
         activo: true,
         ventas: 0
       };
-      
-      setProductos([...productos, producto]);
+
+      setProductos([...productos, newProduct]);
       setNuevoProducto({
         nombre: '', precio: 0, descripcion: '', imagen: '', categoria: '', stock: 0
       });
-      showMessage(`Producto ${producto.nombre} creado exitosamente`, 'success');
+      showMessage(`Producto ${newProduct.nombre} creado exitosamente`, 'success');
+    } catch (error: any) {
+      console.error('Error creating product:', error);
+      showMessage(error.message || 'Error al crear producto', 'danger');
+    } finally {
       setIsLoading(false);
-    }, 1000);
+    }
   };
   
+  // Función para abrir modal de edición
+  const openEditModal = (producto: Producto) => {
+    setEditingProduct(producto);
+    setShowEditModal(true);
+  };
+
+  // Función para actualizar producto
+  const actualizarProducto = async () => {
+    if (!editingProduct) return;
+
+    if (!editingProduct.nombre || !editingProduct.precio) {
+      showMessage('Por favor complete los campos obligatorios', 'warning');
+      return;
+    }
+
+    setIsLoading(true);
+
+    try {
+      await ApiService.updateProduct(editingProduct.id, {
+        nombre: editingProduct.nombre,
+        precio: editingProduct.precio,
+        descripcion: editingProduct.descripcion,
+        imagen: editingProduct.imagen,
+        categoria: editingProduct.categoria,
+        stock: editingProduct.stock
+      });
+
+      // Actualizar la lista local
+      setProductos(productos.map(p =>
+        p.id === editingProduct.id ? editingProduct : p
+      ));
+
+      showMessage(`Producto ${editingProduct.nombre} actualizado exitosamente`, 'success');
+      setShowEditModal(false);
+      setEditingProduct(null);
+    } catch (error: any) {
+      console.error('Error updating product:', error);
+      showMessage(error.message || 'Error al actualizar producto', 'danger');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   // Función para alternar estado de producto
-  const toggleProductoEstado = (id: number) => {
-    setProductos(productos.map(p => 
-      p.id === id ? { ...p, activo: !p.activo } : p
-    ));
+  const toggleProductoEstado = async (id: number) => {
     const producto = productos.find(p => p.id === id);
-    showMessage(`Producto ${producto?.activo ? 'desactivado' : 'activado'}`, 'success');
+    if (!producto) return;
+
+    try {
+      await ApiService.updateProduct(id, {
+        nombre: producto.nombre,
+        precio: producto.precio,
+        descripcion: producto.descripcion,
+        imagen: producto.imagen,
+        categoria: producto.categoria,
+        stock: producto.stock,
+        activo: !producto.activo
+      } as any);
+
+      setProductos(productos.map(p =>
+        p.id === id ? { ...p, activo: !p.activo } : p
+      ));
+      showMessage(`Producto ${producto.activo ? 'desactivado' : 'activado'}`, 'success');
+    } catch (error: any) {
+      console.error('Error toggling product status:', error);
+      showMessage(error.message || 'Error al cambiar estado del producto', 'danger');
+    }
   };
   
   // Función para cerrar sesión
@@ -579,13 +768,19 @@ const AdminInterface: React.FC = () => {
                   <td>{usuario.ultimoLogin || 'Nunca'}</td>
                   <td>
                     <div style={{ display: 'flex', gap: '8px' }}>
-                      <button className="admin-btn admin-btn-outline" style={{ padding: '8px 12px', fontSize: '0.8rem' }}>
-                        <IonIcon icon={eyeOutline} />
+                      <button
+                        className="admin-btn admin-btn-outline"
+                        style={{ padding: '8px 12px', fontSize: '0.8rem' }}
+                        onClick={() => openEditUserModal(usuario)}
+                        title="Editar usuario"
+                      >
+                        <IonIcon icon={createOutline} />
                       </button>
-                      <button 
-                        className="admin-btn admin-btn-danger" 
+                      <button
+                        className="admin-btn admin-btn-danger"
                         style={{ padding: '8px 12px', fontSize: '0.8rem' }}
                         onClick={() => eliminarUsuario(usuario.id)}
+                        title="Eliminar usuario"
                       >
                         <IonIcon icon={trashOutline} />
                       </button>
@@ -603,6 +798,13 @@ const AdminInterface: React.FC = () => {
   // Renderizar sección de productos
   const renderProductos = () => (
     <div>
+      {isLoadingData ? (
+        <div className="admin-card" style={{ textAlign: 'center', padding: '60px' }}>
+          <div className="admin-spinner" style={{ margin: '0 auto 20px', width: '40px', height: '40px' }}></div>
+          <p style={{ color: 'rgba(255, 255, 255, 0.7)' }}>Cargando productos...</p>
+        </div>
+      ) : null}
+
       {/* Formulario crear producto */}
       <div className="admin-card">
         <div className="admin-card-header">
@@ -718,24 +920,31 @@ const AdminInterface: React.FC = () => {
             Catálogo de Productos ({productos.length})
           </h2>
         </div>
-        
-        <div className="admin-table-container">
-          <table className="admin-table">
-            <thead>
-              <tr>
-                <th>ID</th>
-                <th>Imagen</th>
-                <th>Producto</th>
-                <th>Precio</th>
-                <th>Categoría</th>
-                <th>Stock</th>
-                <th>Ventas</th>
-                <th>Estado</th>
-                <th>Acciones</th>
-              </tr>
-            </thead>
-            <tbody>
-              {productos.map(producto => (
+
+        {productos.length === 0 && !isLoadingData ? (
+          <div style={{ textAlign: 'center', padding: '40px', color: 'rgba(255, 255, 255, 0.7)' }}>
+            <IonIcon icon={cubeOutline} style={{ fontSize: '64px', opacity: 0.3, marginBottom: '16px' }} />
+            <p>No hay productos registrados</p>
+            <p style={{ fontSize: '0.9rem' }}>Usa el formulario arriba para agregar productos</p>
+          </div>
+        ) : (
+          <div className="admin-table-container">
+            <table className="admin-table">
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Imagen</th>
+                  <th>Producto</th>
+                  <th>Precio</th>
+                  <th>Categoría</th>
+                  <th>Stock</th>
+                  <th>Ventas</th>
+                  <th>Estado</th>
+                  <th>Acciones</th>
+                </tr>
+              </thead>
+              <tbody>
+                {productos.map(producto => (
                 <tr key={producto.id}>
                   <td>#{producto.id}</td>
                   <td>
@@ -776,14 +985,19 @@ const AdminInterface: React.FC = () => {
                   </td>
                   <td>
                     <div style={{ display: 'flex', gap: '8px' }}>
-                      <button 
+                      <button
                         className={`admin-btn ${producto.activo ? 'admin-btn-outline' : 'admin-btn-success'}`}
                         style={{ padding: '8px 12px', fontSize: '0.8rem' }}
                         onClick={() => toggleProductoEstado(producto.id)}
                       >
                         {producto.activo ? 'Desactivar' : 'Activar'}
                       </button>
-                      <button className="admin-btn admin-btn-outline" style={{ padding: '8px 12px', fontSize: '0.8rem' }}>
+                      <button
+                        className="admin-btn admin-btn-outline"
+                        style={{ padding: '8px 12px', fontSize: '0.8rem' }}
+                        onClick={() => openEditModal(producto)}
+                        title="Editar producto"
+                      >
                         <IonIcon icon={createOutline} />
                       </button>
                       <button 
@@ -813,14 +1027,15 @@ const AdminInterface: React.FC = () => {
                     </div>
                   </td>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
     </div>
   );
-  
+
   // Renderizar sección de reportes
   const renderReportes = () => (
     <div>
@@ -1181,6 +1396,299 @@ const AdminInterface: React.FC = () => {
           onDidDismiss={() => setShowAlert(false)}
           {...alertConfig}
         />
+
+        {/* Modal de edición de producto */}
+        {showEditModal && editingProduct && (
+          <div
+            style={{
+              position: 'fixed',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              background: 'rgba(0, 0, 0, 0.7)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              zIndex: 10000,
+              padding: '20px'
+            }}
+            onClick={() => setShowEditModal(false)}
+          >
+            <div
+              className="admin-card"
+              style={{
+                maxWidth: '600px',
+                width: '100%',
+                maxHeight: '90vh',
+                overflow: 'auto',
+                margin: 0
+              }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="admin-card-header">
+                <h2 className="admin-card-title">
+                  <IonIcon icon={createOutline} />
+                  Editar Producto
+                </h2>
+              </div>
+
+              <form className="admin-form" onSubmit={(e) => { e.preventDefault(); actualizarProducto(); }}>
+                <div className="admin-form-grid">
+                  <div className="admin-form-group">
+                    <label className="admin-form-label">Nombre del Producto *</label>
+                    <input
+                      type="text"
+                      className="admin-form-input"
+                      value={editingProduct.nombre}
+                      onChange={(e) => setEditingProduct({...editingProduct, nombre: e.target.value})}
+                      required
+                    />
+                  </div>
+
+                  <div className="admin-form-group">
+                    <label className="admin-form-label">Precio (USD) *</label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      className="admin-form-input"
+                      value={editingProduct.precio}
+                      onChange={(e) => setEditingProduct({...editingProduct, precio: parseFloat(e.target.value) || 0})}
+                      required
+                    />
+                  </div>
+
+                  <div className="admin-form-group">
+                    <label className="admin-form-label">Categoría</label>
+                    <select
+                      className="admin-form-select"
+                      value={editingProduct.categoria}
+                      onChange={(e) => setEditingProduct({...editingProduct, categoria: e.target.value})}
+                    >
+                      <option value="">Seleccionar categoría</option>
+                      <option value="Botellas">Botellas</option>
+                      <option value="Packs">Pack/Multipack</option>
+                      <option value="Garrafones">Garrafón</option>
+                      <option value="Garrafas">Garrafa</option>
+                      <option value="Hielo">Hielo</option>
+                    </select>
+                  </div>
+
+                  <div className="admin-form-group">
+                    <label className="admin-form-label">Stock</label>
+                    <input
+                      type="number"
+                      min="0"
+                      className="admin-form-input"
+                      value={editingProduct.stock}
+                      onChange={(e) => setEditingProduct({...editingProduct, stock: parseInt(e.target.value) || 0})}
+                    />
+                  </div>
+                </div>
+
+                <div className="admin-form-group">
+                  <label className="admin-form-label">Descripción *</label>
+                  <textarea
+                    className="admin-form-textarea"
+                    value={editingProduct.descripcion}
+                    onChange={(e) => setEditingProduct({...editingProduct, descripcion: e.target.value})}
+                    required
+                  />
+                </div>
+
+                <div className="admin-form-group">
+                  <label className="admin-form-label">URL de Imagen</label>
+                  <input
+                    type="text"
+                    className="admin-form-input"
+                    value={editingProduct.imagen}
+                    onChange={(e) => setEditingProduct({...editingProduct, imagen: e.target.value})}
+                  />
+                </div>
+
+                <div style={{ display: 'flex', gap: '12px', marginTop: '20px' }}>
+                  <button
+                    type="button"
+                    className="admin-btn admin-btn-outline"
+                    onClick={() => {
+                      setShowEditModal(false);
+                      setEditingProduct(null);
+                    }}
+                    style={{ flex: 1 }}
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    type="submit"
+                    className="admin-btn admin-btn-primary"
+                    disabled={isLoading}
+                    style={{ flex: 1 }}
+                  >
+                    {isLoading ? (
+                      <>
+                        <div className="admin-spinner" style={{ width: '16px', height: '16px' }}></div>
+                        Actualizando...
+                      </>
+                    ) : (
+                      <>
+                        <IonIcon icon={saveOutline} />
+                        Guardar Cambios
+                      </>
+                    )}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+
+        {/* Modal de edición de usuario */}
+        {showEditUserModal && editingUser && (
+          <div
+            style={{
+              position: 'fixed',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              background: 'rgba(0, 0, 0, 0.7)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              zIndex: 10000,
+              padding: '20px'
+            }}
+            onClick={() => setShowEditUserModal(false)}
+          >
+            <div
+              className="admin-card"
+              style={{
+                maxWidth: '600px',
+                width: '100%',
+                maxHeight: '90vh',
+                overflow: 'auto',
+                margin: 0
+              }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="admin-card-header">
+                <h2 className="admin-card-title">
+                  <IonIcon icon={createOutline} />
+                  Editar Usuario
+                </h2>
+              </div>
+
+              <form className="admin-form" onSubmit={(e) => { e.preventDefault(); actualizarUsuario(); }}>
+                <div className="admin-form-grid">
+                  <div className="admin-form-group">
+                    <label className="admin-form-label">
+                      <IonIcon icon={peopleOutline} />
+                      Nombre de Usuario *
+                    </label>
+                    <input
+                      type="text"
+                      className="admin-form-input"
+                      value={editingUser.username}
+                      onChange={(e) => setEditingUser({...editingUser, username: e.target.value})}
+                      required
+                    />
+                  </div>
+
+                  <div className="admin-form-group">
+                    <label className="admin-form-label">Email *</label>
+                    <input
+                      type="email"
+                      className="admin-form-input"
+                      value={editingUser.email}
+                      onChange={(e) => setEditingUser({...editingUser, email: e.target.value})}
+                      required
+                    />
+                  </div>
+
+                  <div className="admin-form-group">
+                    <label className="admin-form-label">Tipo de Usuario *</label>
+                    <select
+                      className="admin-form-select"
+                      value={editingUser.tipo}
+                      onChange={(e) => setEditingUser({...editingUser, tipo: e.target.value as 'vendedor' | 'cliente'})}
+                    >
+                      <option value="vendedor">Vendedor</option>
+                      <option value="cliente">Cliente</option>
+                    </select>
+                  </div>
+
+                  <div className="admin-form-group">
+                    <label className="admin-form-label">Estado</label>
+                    <select
+                      className="admin-form-select"
+                      value={editingUser.estado}
+                      onChange={(e) => setEditingUser({...editingUser, estado: e.target.value as 'activo' | 'inactivo'})}
+                    >
+                      <option value="activo">Activo</option>
+                      <option value="inactivo">Inactivo</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="admin-form-group">
+                  <label className="admin-form-label">
+                    Nueva Contraseña
+                    <span style={{ fontSize: '0.85rem', color: 'rgba(255, 255, 255, 0.6)', fontWeight: 'normal', marginLeft: '8px' }}>
+                      (dejar en blanco para no cambiar)
+                    </span>
+                  </label>
+                  <input
+                    type="password"
+                    className="admin-form-input"
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    placeholder="Mínimo 6 caracteres"
+                    minLength={6}
+                  />
+                  {newPassword && newPassword.length < 6 && (
+                    <span style={{ color: '#F59E0B', fontSize: '0.85rem', marginTop: '4px', display: 'block' }}>
+                      La contraseña debe tener al menos 6 caracteres
+                    </span>
+                  )}
+                </div>
+
+                <div style={{ display: 'flex', gap: '12px', marginTop: '20px' }}>
+                  <button
+                    type="button"
+                    className="admin-btn admin-btn-outline"
+                    onClick={() => {
+                      setShowEditUserModal(false);
+                      setEditingUser(null);
+                      setNewPassword('');
+                    }}
+                    style={{ flex: 1 }}
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    type="submit"
+                    className="admin-btn admin-btn-primary"
+                    disabled={isLoading || (newPassword.length > 0 && newPassword.length < 6)}
+                    style={{ flex: 1 }}
+                  >
+                    {isLoading ? (
+                      <>
+                        <div className="admin-spinner" style={{ width: '16px', height: '16px' }}></div>
+                        Actualizando...
+                      </>
+                    ) : (
+                      <>
+                        <IonIcon icon={saveOutline} />
+                        Guardar Cambios
+                      </>
+                    )}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
       </IonContent>
     </IonPage>
   );

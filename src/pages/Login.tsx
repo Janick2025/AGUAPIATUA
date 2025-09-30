@@ -3,7 +3,7 @@ import {
   IonPage, IonHeader, IonToolbar, IonTitle, IonContent,
   IonInput, IonButton, IonIcon, IonToast
 } from '@ionic/react';
-import { useHistory } from 'react-router-dom';
+import { useHistory, useLocation } from 'react-router-dom';
 import { 
   personOutline, 
   lockClosedOutline, 
@@ -13,55 +13,58 @@ import {
   eyeOutline,
   eyeOffOutline
 } from 'ionicons/icons';
+import ApiService from '../services/apiService';
+import { GoogleAuth } from '@codetrix-studio/capacitor-google-auth';
+import { isPlatform } from '@ionic/react';
 import './Login.css';
 
 // Definición de tipos de usuario con sus rutas correspondientes
 const USER_TYPES = [
   { 
-    value: 'cliente', 
+    value: 'Cliente', 
     label: 'Cliente', 
     icon: '👤',
     route: '/home',
-    description: 'Comprar productos'
+    description: 'Comprar productos',
+    email: 'cliente@example.com',
+    password: 'cliente123'
   },
   { 
-    value: 'administrador', 
+    value: 'Admin', 
     label: 'Admin', 
     icon: '⚙️',
-    route: '/admin-dashboard', // Ruta futura para administradores
-    description: 'Gestionar sistema'
+    route: '/admin-dashboard',
+    description: 'Gestionar sistema',
+    email: 'admin@aguapiatua.com',
+    password: 'admin123'
   },
   { 
-    value: 'vendedor', 
+    value: 'Vendedor', 
     label: 'Vendedor', 
     icon: '🛍️',
-    route: '/vendedor-dashboard', // Ruta futura para vendedores
-    description: 'Gestionar ventas'
+    route: '/vendedor-dashboard',
+    description: 'Gestionar ventas',
+    email: 'vendedor@aguapiatua.com',
+    password: 'vendedor123'
   }
 ];
 
-// Credenciales de demo (en producción esto vendría de una API)
-const DEMO_CREDENTIALS = {
-  cliente: { username: 'cliente', password: '123' },
-  administrador: { username: 'admin', password: 'admin123' },
-  vendedor: { username: 'vendedor', password: 'vend123' }
-};
-
 export default function Login() {
   const history = useHistory();
-  
+  const location = useLocation();
+
   // Estados del formulario
-  const [userType, setUserType] = useState('cliente');
-  const [username, setUsername] = useState('');
+  const [userType, setUserType] = useState('Cliente');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  
+
   // Estados para mensajes
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
   const [toastColor, setToastColor] = useState('success');
-  
+
   // Estados para efectos visuales
   const [showContent, setShowContent] = useState(false);
 
@@ -71,8 +74,46 @@ export default function Login() {
       setShowContent(true);
     }, 300);
 
+    // Verificar si viene del callback de Google
+    const params = new URLSearchParams(location.search);
+    const googleToken = params.get('google_token');
+    const userData = params.get('user');
+
+    if (googleToken && userData) {
+      try {
+        const user = JSON.parse(decodeURIComponent(userData));
+        localStorage.setItem('aguapiatua_token', googleToken);
+        localStorage.setItem('aguapiatua_user', JSON.stringify(user));
+        localStorage.setItem('isAuthenticated', 'true');
+
+        // Normalizar tipo de usuario
+        let normalizedUserType = 'cliente';
+        if (user.tipo_usuario === 'Admin') {
+          normalizedUserType = 'administrador';
+        } else if (user.tipo_usuario === 'Vendedor') {
+          normalizedUserType = 'vendedor';
+        }
+        localStorage.setItem('userType', normalizedUserType);
+
+        showMessage(`¡Bienvenido ${user.nombre}!`, 'success');
+
+        setTimeout(() => {
+          if (user.tipo_usuario === 'Admin') {
+            history.push('/admin-dashboard');
+          } else if (user.tipo_usuario === 'Vendedor') {
+            history.push('/vendedor-dashboard');
+          } else {
+            history.push('/home');
+          }
+        }, 1000);
+      } catch (error) {
+        console.error('Error procesando login de Google:', error);
+        showMessage('Error al procesar login de Google', 'danger');
+      }
+    }
+
     return () => clearTimeout(timer);
-  }, []);
+  }, [location, history]);
 
   // Generar burbujas dinámicamente
   const generateBubbles = () => {
@@ -97,8 +138,12 @@ export default function Login() {
 
   // Función de validación
   const validateForm = () => {
-    if (!username.trim()) {
-      showMessage('Por favor ingresa tu usuario', 'warning');
+    if (!email.trim()) {
+      showMessage('Por favor ingresa tu email', 'warning');
+      return false;
+    }
+    if (!email.includes('@')) {
+      showMessage('Por favor ingresa un email válido', 'warning');
       return false;
     }
     if (!password.trim()) {
@@ -108,49 +153,45 @@ export default function Login() {
     return true;
   };
 
-  // Función de autenticación
-  const authenticateUser = () => {
-    const credentials = DEMO_CREDENTIALS[userType as keyof typeof DEMO_CREDENTIALS];
-    
-    if (username === credentials.username && password === credentials.password) {
-      return true;
-    }
-    return false;
-  };
-
-  // Función de login principal
+  // Función de login principal usando API
   const handleLogin = async () => {
     if (!validateForm()) return;
     
     setIsLoading(true);
     
-    // Simular llamada a API
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    
-    if (authenticateUser()) {
+    try {
+      // Llamar a la API para autenticar
+      const response = await ApiService.login(email, password);
+      
       // Guardar datos de sesión
-      localStorage.setItem('userType', userType);
-      localStorage.setItem('username', username);
+      localStorage.setItem('aguapiatua_user', JSON.stringify(response.user));
       localStorage.setItem('isAuthenticated', 'true');
-      
-      showMessage(`¡Bienvenido ${userType}!`, 'success');
-      
+
+      // Normalizar y guardar tipo de usuario
+      let normalizedUserType = 'cliente';
+      if (response.user.tipo_usuario === 'Admin') {
+        normalizedUserType = 'administrador';
+      } else if (response.user.tipo_usuario === 'Vendedor') {
+        normalizedUserType = 'vendedor';
+      }
+      localStorage.setItem('userType', normalizedUserType);
+
+      showMessage(`¡Bienvenido ${response.user.nombre}!`, 'success');
+
       // Navegar según el tipo de usuario
-      const selectedUserType = USER_TYPES.find(type => type.value === userType);
-      const targetRoute = selectedUserType?.route || '/home';
-      
       setTimeout(() => {
-        if (userType === 'administrador') {
+        if (response.user.tipo_usuario === 'Admin') {
           history.push('/admin-dashboard');
-        } else if (userType === 'vendedor') {
+        } else if (response.user.tipo_usuario === 'Vendedor') {
           history.push('/vendedor-dashboard');
         } else {
           history.push('/home');
         }
       }, 1000);
       
-    } else {
-      showMessage('Credenciales incorrectas', 'danger');
+    } catch (error: any) {
+      console.error('Error en login:', error);
+      showMessage(error.message || 'Error al iniciar sesión', 'danger');
     }
     
     setIsLoading(false);
@@ -158,10 +199,72 @@ export default function Login() {
 
   // Auto-rellenar credenciales para demo
   const autoFillCredentials = (selectedUserType: string) => {
-    const credentials = DEMO_CREDENTIALS[selectedUserType as keyof typeof DEMO_CREDENTIALS];
-    setUsername(credentials.username);
-    setPassword(credentials.password);
-    showMessage(`Credenciales auto-rellenadas para ${selectedUserType}`, 'success');
+    const userTypeData = USER_TYPES.find(type => type.value === selectedUserType);
+    if (userTypeData) {
+      setEmail(userTypeData.email);
+      setPassword(userTypeData.password);
+      showMessage(`Credenciales auto-rellenadas para ${selectedUserType}`, 'success');
+    }
+  };
+
+  // Login con Google
+  const handleGoogleLogin = async () => {
+    try {
+      setIsLoading(true);
+
+      // Verificar si es móvil nativo o web
+      if (isPlatform('capacitor')) {
+        // Login nativo para móvil
+        const result = await GoogleAuth.signIn();
+
+        // Enviar al backend para crear/buscar usuario
+        const response = await fetch('http://localhost:3001/api/auth/google/mobile', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            email: result.email,
+            nombre: result.name,
+            googleId: result.id
+          })
+        });
+
+        const data = await response.json();
+
+        if (data.token && data.user) {
+          localStorage.setItem('aguapiatua_token', data.token);
+          localStorage.setItem('aguapiatua_user', JSON.stringify(data.user));
+          localStorage.setItem('isAuthenticated', 'true');
+
+          let normalizedUserType = 'cliente';
+          if (data.user.tipo_usuario === 'Admin') {
+            normalizedUserType = 'administrador';
+          } else if (data.user.tipo_usuario === 'Vendedor') {
+            normalizedUserType = 'vendedor';
+          }
+          localStorage.setItem('userType', normalizedUserType);
+
+          showMessage(`¡Bienvenido ${data.user.nombre}!`, 'success');
+
+          setTimeout(() => {
+            if (data.user.tipo_usuario === 'Admin') {
+              history.push('/admin-dashboard');
+            } else if (data.user.tipo_usuario === 'Vendedor') {
+              history.push('/vendedor-dashboard');
+            } else {
+              history.push('/home');
+            }
+          }, 1000);
+        }
+      } else {
+        // Login web (OAuth redirect)
+        window.location.href = 'http://localhost:3001/api/auth/google';
+      }
+    } catch (error: any) {
+      console.error('Error en login de Google:', error);
+      showMessage('Error al iniciar sesión con Google', 'danger');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -215,15 +318,16 @@ export default function Login() {
               </IonButton>
             </div>
 
-            {/* Campo de usuario */}
+            {/* Campo de email */}
             <div className="input-group">
               <IonInput
-                label="Usuario"
+                label="Email"
                 labelPlacement="floating"
                 fill="outline"
-                value={username}
-                onIonChange={e => setUsername(e.detail.value!)}
-                placeholder={`Ingresa tu usuario de ${userType}`}
+                type="email"
+                value={email}
+                onIonChange={e => setEmail(e.detail.value!)}
+                placeholder={`Ingresa tu email de ${userType}`}
                 clearInput={true}
               />
               <IonIcon icon={personOutline} className="input-icon" />
@@ -259,10 +363,10 @@ export default function Login() {
               color: '#0EA5E9',
               textAlign: 'center'
             }}>
-              <strong>Credenciales de Demo:</strong><br/>
-              Cliente: cliente/123<br/>
-              Admin: admin/admin123<br/>
-              Vendedor: vendedor/vend123
+              <strong>Credenciales de Demo (Base de Datos):</strong><br/>
+              Cliente: cliente@example.com / cliente123<br/>
+              Admin: admin@aguapiatua.com / admin123<br/>
+              Vendedor: vendedor@aguapiatua.com / vendedor123
             </div>
 
             {/* Botón de login */}
@@ -274,12 +378,12 @@ export default function Login() {
             >
               {isLoading ? (
                 <>
-                  <div style={{ 
-                    width: '20px', 
-                    height: '20px', 
-                    border: '2px solid #ffffff', 
-                    borderTop: '2px solid transparent', 
-                    borderRadius: '50%', 
+                  <div style={{
+                    width: '20px',
+                    height: '20px',
+                    border: '2px solid #ffffff',
+                    borderTop: '2px solid transparent',
+                    borderRadius: '50%',
                     animation: 'spin 1s linear infinite',
                     marginRight: '8px'
                   }}></div>
@@ -291,6 +395,43 @@ export default function Login() {
                   ENTRAR COMO {userType.toUpperCase()}
                 </>
               )}
+            </IonButton>
+
+            {/* Divisor */}
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              margin: '20px 0',
+              color: 'rgba(255, 255, 255, 0.6)'
+            }}>
+              <div style={{ flex: 1, height: '1px', background: 'rgba(255, 255, 255, 0.2)' }}></div>
+              <span style={{ padding: '0 16px', fontSize: '0.9rem' }}>O continúa con</span>
+              <div style={{ flex: 1, height: '1px', background: 'rgba(255, 255, 255, 0.2)' }}></div>
+            </div>
+
+            {/* Botón de Google */}
+            <IonButton
+              expand="block"
+              fill="outline"
+              onClick={handleGoogleLogin}
+              style={{
+                '--border-color': 'rgba(255, 255, 255, 0.3)',
+                '--color': 'white',
+                height: '50px',
+                fontSize: '1rem',
+                fontWeight: '600'
+              }}
+            >
+              <img
+                src="https://www.google.com/favicon.ico"
+                alt="Google"
+                style={{
+                  width: '20px',
+                  height: '20px',
+                  marginRight: '12px'
+                }}
+              />
+              Iniciar sesión con Google
             </IonButton>
 
             {/* Footer */}
