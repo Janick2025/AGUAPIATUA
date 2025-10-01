@@ -166,6 +166,8 @@ export default function Login() {
       // Guardar datos de sesión
       localStorage.setItem('aguapiatua_user', JSON.stringify(response.user));
       localStorage.setItem('isAuthenticated', 'true');
+      localStorage.setItem('userId', response.user.id.toString());
+      localStorage.setItem('username', response.user.nombre);
 
       // Normalizar y guardar tipo de usuario
       let normalizedUserType = 'cliente';
@@ -234,6 +236,8 @@ export default function Login() {
           localStorage.setItem('aguapiatua_token', data.token);
           localStorage.setItem('aguapiatua_user', JSON.stringify(data.user));
           localStorage.setItem('isAuthenticated', 'true');
+          localStorage.setItem('userId', data.user.id.toString());
+          localStorage.setItem('username', data.user.nombre);
 
           let normalizedUserType = 'cliente';
           if (data.user.tipo_usuario === 'Admin') {

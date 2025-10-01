@@ -7,12 +7,14 @@ import {
   IonButtons, IonContent, IonHeader, IonPage,
   IonTitle, IonToolbar, IonCard, IonCardHeader, IonCardTitle,
   IonCardContent, IonBadge, IonIcon, IonButton,
-  IonToast, IonSpinner
+  IonToast, IonSpinner, IonModal, IonList, IonItem, IonLabel,
+  IonRefresher, IonRefresherContent
 } from '@ionic/react';
 
 import {
   cartOutline, star, addOutline, removeOutline, closeOutline, trashOutline,
-  logOutOutline
+  logOutOutline, receiptOutline, menuOutline, timeOutline, checkmarkCircleOutline,
+  alertCircleOutline, closeCircleOutline, locationOutline, callOutline, refreshOutline
 } from 'ionicons/icons';
 
 // Tipos TypeScript optimizados
@@ -30,13 +32,36 @@ type Producto = {
   stock?: number;
 };
 
-type CartItem = { 
-  id: number; 
-  nombre: string; 
-  precio: number; 
-  imagen: string; 
+type CartItem = {
+  id: number;
+  nombre: string;
+  precio: number;
+  imagen: string;
   qty: number;
   stock?: number;
+};
+
+type Pedido = {
+  id: number;
+  total: number;
+  estado: string;
+  direccion_entrega: string;
+  telefono_contacto: string;
+  notas?: string;
+  fecha_pedido: string;
+  fecha_entrega_estimada?: string;
+  fecha_entrega_real?: string;
+  vendedor_nombre?: string;
+  items?: PedidoItem[];
+};
+
+type PedidoItem = {
+  product_id: number;
+  nombre: string;
+  cantidad: number;
+  precio_unitario: number;
+  subtotal: number;
+  imagen?: string;
 };
 
 export default function Home() {
@@ -53,6 +78,14 @@ export default function Home() {
 
   // Estados para efectos visuales
   const [showContent, setShowContent] = useState(false);
+
+  // Estados para menú lateral de pedidos
+  const [showSidebar, setShowSidebar] = useState(false);
+  const [pedidos, setPedidos] = useState<Pedido[]>([]);
+  const [isLoadingPedidos, setIsLoadingPedidos] = useState(false);
+  const [selectedPedido, setSelectedPedido] = useState<Pedido | null>(null);
+  const [showModal, setShowModal] = useState(false);
+  const [isLoadingDetails, setIsLoadingDetails] = useState(false);
 
   // Datos del usuario (desde localStorage)
   const userData = JSON.parse(localStorage.getItem('aguapiatua_user') || '{}');
@@ -254,6 +287,116 @@ export default function Home() {
     }, 1000);
   };
 
+  // Funciones para el menú lateral de pedidos
+  const loadPedidos = async () => {
+    try {
+      setIsLoadingPedidos(true);
+      const orders = await ApiService.getOrders();
+
+      // Verificar que orders sea un array
+      if (!Array.isArray(orders)) {
+        console.warn('Orders no es un array:', orders);
+        setPedidos([]);
+        return;
+      }
+
+      const sortedOrders = orders.sort((a: Pedido, b: Pedido) =>
+        new Date(b.fecha_pedido).getTime() - new Date(a.fecha_pedido).getTime()
+      );
+      setPedidos(sortedOrders);
+    } catch (error: any) {
+      console.error('Error cargando pedidos:', error);
+      showMessage('Error al cargar el historial de pedidos');
+      setPedidos([]); // Asegurar que pedidos sea un array vacío en caso de error
+    } finally {
+      setIsLoadingPedidos(false);
+    }
+  };
+
+  const handleOpenSidebar = () => {
+    setShowSidebar(true);
+    loadPedidos();
+  };
+
+  const handleCloseSidebar = () => {
+    setShowSidebar(false);
+  };
+
+  const getEstadoBadgeColor = (estado: string) => {
+    switch (estado) {
+      case 'Pendiente': return 'warning';
+      case 'Confirmado': return 'secondary';
+      case 'En_Preparacion': return 'tertiary';
+      case 'En_Camino': return 'primary';
+      case 'Entregado': return 'success';
+      case 'Cancelado': return 'danger';
+      default: return 'medium';
+    }
+  };
+
+  const getEstadoIcon = (estado: string) => {
+    switch (estado) {
+      case 'Pendiente': return timeOutline;
+      case 'Confirmado': return checkmarkCircleOutline;
+      case 'En_Preparacion': return cartOutline;
+      case 'En_Camino': return locationOutline;
+      case 'Entregado': return checkmarkCircleOutline;
+      case 'Cancelado': return closeCircleOutline;
+      default: return alertCircleOutline;
+    }
+  };
+
+  const getEstadoText = (estado: string) => {
+    return estado.replace(/_/g, ' ');
+  };
+
+  const formatDate = (dateString: string) => {
+    if (!dateString) return 'Fecha no disponible';
+
+    try {
+      const date = new Date(dateString);
+      if (isNaN(date.getTime())) {
+        return 'Fecha inválida';
+      }
+      return date.toLocaleDateString('es-ES', {
+        day: '2-digit',
+        month: 'short',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+    } catch (error) {
+      console.error('Error formateando fecha:', error);
+      return 'Fecha no disponible';
+    }
+  };
+
+  const handleViewDetails = async (pedido: Pedido) => {
+    try {
+      setIsLoadingDetails(true);
+      setShowModal(true);
+      const details = await ApiService.getOrder(pedido.id);
+
+      if (!details) {
+        throw new Error('No se recibieron detalles del pedido');
+      }
+
+      setSelectedPedido(details);
+    } catch (error: any) {
+      console.error('Error cargando detalles:', error);
+      showMessage('Error al cargar los detalles del pedido');
+      setShowModal(false);
+      setSelectedPedido(null);
+    } finally {
+      setIsLoadingDetails(false);
+    }
+  };
+
+  const handleCloseModal = () => {
+    setShowModal(false);
+    setSelectedPedido(null);
+  };
+
   // Generar efectos decorativos
   const generateBubbles = () => {
     return Array.from({ length: 4 }, (_, index) => (
@@ -302,7 +445,10 @@ export default function Home() {
         <IonHeader>
           <IonToolbar className="home-toolbar">
             <IonButtons slot="start">
-              <IonButton fill="clear" onClick={handleLogout} color="light">
+              <IonButton fill="clear" onClick={handleOpenSidebar} color="light" title="Mis pedidos">
+                <IonIcon icon={menuOutline} />
+              </IonButton>
+              <IonButton fill="clear" onClick={handleLogout} color="light" title="Cerrar sesión">
                 <IonIcon icon={logOutOutline} />
               </IonButton>
             </IonButtons>
@@ -317,9 +463,9 @@ export default function Home() {
             </IonTitle>
 
             <IonButtons slot="end">
-              <IonButton 
-                fill="clear" 
-                onClick={() => setShowCart(true)} 
+              <IonButton
+                fill="clear"
+                onClick={() => setShowCart(true)}
                 aria-label="Abrir carrito"
               >
                 <IonIcon icon={cartOutline} />
@@ -432,6 +578,105 @@ export default function Home() {
             className={`cart-backdrop ${showCart ? 'open' : ''}`}
             onClick={() => setShowCart(false)}
           />
+
+          {/* Backdrop para cerrar sidebar */}
+          <div
+            className={`sidebar-backdrop ${showSidebar ? 'open' : ''}`}
+            onClick={handleCloseSidebar}
+          />
+
+          {/* Menú lateral de pedidos */}
+          <div className={`sidebar-pedidos ${showSidebar ? 'open' : ''}`}>
+            <div className="sidebar-header">
+              <div className="sidebar-title">
+                <IonIcon icon={receiptOutline} />
+                <span>Mis Pedidos</span>
+              </div>
+              <div className="sidebar-actions">
+                <IonButton
+                  size="small"
+                  fill="clear"
+                  color="light"
+                  onClick={loadPedidos}
+                  title="Actualizar"
+                >
+                  <IonIcon icon={refreshOutline} />
+                </IonButton>
+                <IonButton
+                  size="small"
+                  fill="clear"
+                  color="light"
+                  onClick={handleCloseSidebar}
+                  title="Cerrar"
+                >
+                  <IonIcon icon={closeOutline} />
+                </IonButton>
+              </div>
+            </div>
+
+            <div className="sidebar-body">
+              {isLoadingPedidos ? (
+                <div className="sidebar-loading">
+                  <IonSpinner name="crescent" />
+                  <p>Cargando pedidos...</p>
+                </div>
+              ) : pedidos.length === 0 ? (
+                <div className="sidebar-empty">
+                  <IonIcon icon={receiptOutline} style={{ fontSize: '3rem', opacity: 0.3 }} />
+                  <p>No tienes pedidos aún</p>
+                  <p style={{ fontSize: '0.85rem', opacity: 0.7 }}>
+                    Tus pedidos aparecerán aquí
+                  </p>
+                </div>
+              ) : (
+                <div className="pedidos-list">
+                  {pedidos.map((pedido) => (
+                    <div key={pedido.id} className="pedido-item">
+                      <div className="pedido-item-header">
+                        <div>
+                          <strong>Pedido #{pedido.id}</strong>
+                          <p className="pedido-fecha">
+                            <IonIcon icon={timeOutline} />
+                            {formatDate(pedido.fecha_pedido)}
+                          </p>
+                        </div>
+                        <IonBadge color={getEstadoBadgeColor(pedido.estado)}>
+                          <IonIcon icon={getEstadoIcon(pedido.estado)} />
+                          {getEstadoText(pedido.estado)}
+                        </IonBadge>
+                      </div>
+
+                      <div className="pedido-item-body">
+                        <div className="pedido-info-row">
+                          <IonIcon icon={locationOutline} />
+                          <span>{pedido.direccion_entrega}</span>
+                        </div>
+                        {pedido.telefono_contacto && (
+                          <div className="pedido-info-row">
+                            <IonIcon icon={callOutline} />
+                            <span>{pedido.telefono_contacto}</span>
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="pedido-item-footer">
+                        <div className="pedido-total">
+                          <strong>Total: ${Number(pedido.total || 0).toFixed(2)}</strong>
+                        </div>
+                        <IonButton
+                          size="small"
+                          fill="outline"
+                          onClick={() => handleViewDetails(pedido)}
+                        >
+                          Ver Detalles
+                        </IonButton>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
 
           {/* Mini-carrito flotante */}
           <div className={`cart-float ${showCart ? 'open' : ''}`}>
@@ -559,6 +804,130 @@ export default function Home() {
         position="bottom"
         color="success"
       />
+
+      {/* Modal de detalles del pedido */}
+      <IonModal isOpen={showModal} onDidDismiss={handleCloseModal}>
+        <IonHeader>
+          <IonToolbar color="primary">
+            <IonTitle>Detalles del Pedido</IonTitle>
+            <IonButtons slot="end">
+              <IonButton onClick={handleCloseModal}>
+                <IonIcon icon={closeCircleOutline} />
+              </IonButton>
+            </IonButtons>
+          </IonToolbar>
+        </IonHeader>
+        <IonContent className="ion-padding">
+          {isLoadingDetails ? (
+            <div style={{ textAlign: 'center', marginTop: '50%' }}>
+              <IonSpinner name="crescent" />
+              <p>Cargando detalles...</p>
+            </div>
+          ) : selectedPedido ? (
+            <div className="pedido-details">
+              <div className="detail-section">
+                <h3>Información del Pedido</h3>
+                <IonList>
+                  <IonItem>
+                    <IonLabel>
+                      <strong>Número de Pedido:</strong>
+                      <p>#{selectedPedido.id}</p>
+                    </IonLabel>
+                  </IonItem>
+                  <IonItem>
+                    <IonLabel>
+                      <strong>Estado:</strong>
+                      <p>
+                        <IonBadge color={getEstadoBadgeColor(selectedPedido.estado)}>
+                          {getEstadoText(selectedPedido.estado)}
+                        </IonBadge>
+                      </p>
+                    </IonLabel>
+                  </IonItem>
+                  <IonItem>
+                    <IonLabel>
+                      <strong>Fecha de Pedido:</strong>
+                      <p>{formatDate(selectedPedido.fecha_pedido)}</p>
+                    </IonLabel>
+                  </IonItem>
+                  {selectedPedido.fecha_entrega_real && (
+                    <IonItem>
+                      <IonLabel>
+                        <strong>Fecha de Entrega:</strong>
+                        <p>{formatDate(selectedPedido.fecha_entrega_real)}</p>
+                      </IonLabel>
+                    </IonItem>
+                  )}
+                </IonList>
+              </div>
+
+              <div className="detail-section">
+                <h3>Dirección de Entrega</h3>
+                <IonCard>
+                  <IonCardContent>
+                    <p><IonIcon icon={locationOutline} /> {selectedPedido.direccion_entrega}</p>
+                    {selectedPedido.telefono_contacto && (
+                      <p><IonIcon icon={callOutline} /> {selectedPedido.telefono_contacto}</p>
+                    )}
+                  </IonCardContent>
+                </IonCard>
+              </div>
+
+              {selectedPedido.items && selectedPedido.items.length > 0 && (
+                <div className="detail-section">
+                  <h3>Productos</h3>
+                  {selectedPedido.items.map((item, index) => (
+                    <IonCard key={index} className="item-card">
+                      <IonCardContent>
+                        <div className="item-row">
+                          {item.imagen && (
+                            <img
+                              src={item.imagen}
+                              alt={item.nombre}
+                              className="item-image"
+                              style={{ width: '60px', height: '60px', objectFit: 'contain', marginRight: '12px' }}
+                            />
+                          )}
+                          <div className="item-info" style={{ flex: 1 }}>
+                            <strong>{item.nombre || 'Producto'}</strong>
+                            <p>Cantidad: {item.cantidad || 0}</p>
+                            <p>Precio unitario: ${Number(item.precio_unitario || 0).toFixed(2)}</p>
+                          </div>
+                          <div className="item-subtotal" style={{ fontWeight: 'bold' }}>
+                            ${Number(item.subtotal || 0).toFixed(2)}
+                          </div>
+                        </div>
+                      </IonCardContent>
+                    </IonCard>
+                  ))}
+                </div>
+              )}
+
+              {selectedPedido.notas && (
+                <div className="detail-section">
+                  <h3>Notas</h3>
+                  <IonCard>
+                    <IonCardContent>
+                      <p>{selectedPedido.notas}</p>
+                    </IonCardContent>
+                  </IonCard>
+                </div>
+              )}
+
+              <div className="detail-section">
+                <IonCard className="total-card" color="primary">
+                  <IonCardContent>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <h2 style={{ margin: 0 }}>Total:</h2>
+                      <h2 style={{ margin: 0 }}>${Number(selectedPedido.total || 0).toFixed(2)}</h2>
+                    </div>
+                  </IonCardContent>
+                </IonCard>
+              </div>
+            </div>
+          ) : null}
+        </IonContent>
+      </IonModal>
     </>
   );
 }

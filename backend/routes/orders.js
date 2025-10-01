@@ -16,7 +16,8 @@ const createOrderSchema = Joi.object({
   items: Joi.array().items(orderItemSchema).min(1).required(),
   direccion_entrega: Joi.string().min(5).required(),
   telefono_contacto: Joi.string().optional(),
-  notas: Joi.string().optional()
+  notas: Joi.string().optional(),
+  metodo_pago: Joi.string().valid('efectivo', 'transferencia').optional()
 });
 
 // GET /api/orders - Obtener pedidos (filtrados por rol)
@@ -100,15 +101,22 @@ router.get('/:id', authenticate, async (req, res) => {
   }
 });
 
-// POST /api/orders - Crear nuevo pedido (Solo Cliente)
-router.post('/', authenticate, authorize('Cliente'), async (req, res) => {
+// POST /api/orders - Crear nuevo pedido (Cliente o Admin para testing)
+router.post('/', authenticate, async (req, res) => {
+  // Verificar que sea Cliente (permitir Admin temporalmente para pruebas)
+  if (req.user.tipo_usuario !== 'Cliente' && req.user.tipo_usuario !== 'Admin') {
+    return res.status(403).json({
+      error: 'Solo clientes pueden crear pedidos',
+      userType: req.user.tipo_usuario
+    });
+  }
   try {
     const { error } = createOrderSchema.validate(req.body);
     if (error) {
       return res.status(400).json({ error: error.details[0].message });
     }
 
-    const { items, direccion_entrega, telefono_contacto, notas } = req.body;
+    const { items, direccion_entrega, telefono_contacto, notas, metodo_pago } = req.body;
 
     // Validar productos y calcular total
     let total = 0;
@@ -146,6 +154,7 @@ router.post('/', authenticate, authorize('Cliente'), async (req, res) => {
       direccion_entrega,
       telefono_contacto: telefono_contacto || req.user.telefono,
       notas,
+      metodo_pago: metodo_pago || 'efectivo',
       items: validatedItems
     };
 
@@ -288,6 +297,18 @@ router.patch('/:id/status', authenticate, async (req, res) => {
     }
 
     const updatedOrder = await db.getOrderDetails(orderId);
+
+    // Emitir notificación al admin cuando el estado cambia
+    if (req.io) {
+      req.io.emit('order_status_updated', {
+        orderId,
+        estado,
+        vendedor: req.user.nombre,
+        cliente: orderDetails.cliente_nombre || 'Cliente',
+        timestamp: new Date()
+      });
+      console.log(`📢 Notificación de cambio de estado enviada (Pedido #${orderId}: ${estado})`);
+    }
 
     res.json({
       message: 'Estado del pedido actualizado',

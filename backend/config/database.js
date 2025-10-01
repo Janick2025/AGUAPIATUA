@@ -73,13 +73,14 @@ class Database {
       await connection.beginTransaction();
 
       // Crear el pedido
-      const orderSql = 'INSERT INTO orders (cliente_id, total, direccion_entrega, telefono_contacto, notas) VALUES (?, ?, ?, ?, ?)';
+      const orderSql = 'INSERT INTO orders (cliente_id, total, direccion_entrega, telefono_contacto, notas, metodo_pago) VALUES (?, ?, ?, ?, ?, ?)';
       const [orderResult] = await connection.execute(orderSql, [
         orderData.cliente_id,
         orderData.total,
         orderData.direccion_entrega,
         orderData.telefono_contacto,
-        orderData.notas
+        orderData.notas,
+        orderData.metodo_pago || 'efectivo'
       ]);
 
       const orderId = orderResult.insertId;

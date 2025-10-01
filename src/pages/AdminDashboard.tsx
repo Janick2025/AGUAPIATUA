@@ -5,13 +5,15 @@ import {
   IonIcon, IonToast, IonAlert, IonPage, IonContent
 } from '@ionic/react';
 import ApiService from '../services/apiService';
+import notificationService from '../services/notificationService';
 import {
   gridOutline, peopleOutline, cubeOutline, analyticsOutline,
   settingsOutline, logOutOutline, menuOutline, searchOutline,
   notificationsOutline, addOutline, createOutline, trashOutline,
   eyeOutline, checkmarkCircleOutline, closeCircleOutline,
   trendingUpOutline, trendingDownOutline, saveOutline,
-  personAddOutline, storefront, barChartOutline
+  personAddOutline, storefront, barChartOutline, cartOutline,
+  timeOutline, carOutline, personCircleOutline
 } from 'ionicons/icons';
 import './AdminDashboard.css';
 
@@ -46,6 +48,22 @@ interface Estadistica {
   ventasHoy: number;
   crecimientoUsuarios: number;
   crecimientoVentas: number;
+}
+
+interface Pedido {
+  id: number;
+  cliente_id: number;
+  cliente_nombre: string;
+  vendedor_id?: number;
+  vendedor_nombre?: string;
+  total: number;
+  estado: string;
+  direccion_entrega: string;
+  telefono_contacto: string;
+  fecha_pedido: string;
+  metodo_pago?: string;
+  comprobante_pago?: string;
+  items?: any[];
 }
 
 // Datos iniciales simulados
@@ -139,6 +157,7 @@ const AdminInterface: React.FC = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [usuarios, setUsuarios] = useState<Usuario[]>(usuariosIniciales);
   const [productos, setProductos] = useState<Producto[]>([]);
+  const [pedidos, setPedidos] = useState<Pedido[]>([]);
   const [isLoadingData, setIsLoadingData] = useState(true);
   
   // Estados para formularios
@@ -173,6 +192,17 @@ const AdminInterface: React.FC = () => {
   const [alertConfig, setAlertConfig] = useState<any>({});
   const [isLoading, setIsLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
+
+  // Estados de notificaciones
+  const [notificationCount, setNotificationCount] = useState(0);
+  const [showNotificationToast, setShowNotificationToast] = useState(false);
+  const [notificationData, setNotificationData] = useState<any>(null);
+
+  // Estados para asignación de pedidos
+  const [showAssignModal, setShowAssignModal] = useState(false);
+  const [selectedPedidoId, setSelectedPedidoId] = useState<number | null>(null);
+  const [selectedVendedorId, setSelectedVendedorId] = useState<number | null>(null);
+  const [vendedoresDisponibles, setVendedoresDisponibles] = useState<any[]>([]);
   
   // Verificar autenticación y cargar datos
   useEffect(() => {
@@ -220,6 +250,25 @@ const AdminInterface: React.FC = () => {
           estado: u.activo ? 'activo' : 'inactivo',
           ultimoLogin: u.ultimo_login
         })));
+
+        // Cargar pedidos
+        const ordersData = await ApiService.getOrders();
+        console.log('Pedidos obtenidos:', ordersData);
+
+        setPedidos(ordersData.map((o: any) => ({
+          id: o.id,
+          cliente_id: o.cliente_id,
+          cliente_nombre: o.cliente_nombre || 'Cliente desconocido',
+          vendedor_id: o.vendedor_id || null,
+          vendedor_nombre: o.vendedor_nombre || 'Sin asignar',
+          total: Number(o.total) || 0,
+          estado: o.estado || 'Pendiente',
+          direccion_entrega: o.direccion_entrega || '',
+          telefono_contacto: o.telefono_contacto || '',
+          fecha_pedido: o.fecha_pedido || new Date().toISOString(),
+          metodo_pago: o.metodo_pago || 'efectivo',
+          comprobante_pago: o.comprobante_pago || null
+        })));
       } catch (error) {
         console.error('Error loading data:', error);
         showMessage('Error al cargar datos', 'danger');
@@ -229,6 +278,46 @@ const AdminInterface: React.FC = () => {
     };
 
     loadData();
+
+    // Conectar Socket.IO para notificaciones
+    const userId = localStorage.getItem('userId');
+    if (userId) {
+      notificationService.connect(parseInt(userId), 'Admin');
+
+      // Escuchar nuevos pedidos
+      notificationService.onNewOrder((data) => {
+        console.log('🔔 Nuevo pedido recibido:', data);
+        setNotificationCount(prev => prev + 1);
+        setNotificationData(data);
+        setShowNotificationToast(true);
+
+        // Recargar pedidos
+        reloadOrders();
+
+        // Actualizar estadísticas si es necesario
+        showMessage(`Nuevo pedido de ${data.cliente} - Total: $${data.total}`, 'success');
+      });
+
+      // Escuchar actualizaciones de estado de pedidos
+      notificationService.onOrderStatusUpdated((data) => {
+        console.log('📦 Estado de pedido actualizado:', data);
+
+        // Recargar pedidos
+        reloadOrders();
+
+        // Mostrar notificación específica
+        if (data.estado === 'Entregado') {
+          showMessage(`✅ Pedido #${data.orderId} entregado por ${data.vendedor}`, 'success');
+        } else {
+          showMessage(`📦 Pedido #${data.orderId} actualizado a: ${data.estado}`, 'success');
+        }
+      });
+    }
+
+    // Cleanup: desconectar al desmontar
+    return () => {
+      notificationService.disconnect();
+    };
   }, [history]);
   
   // Función para mostrar mensajes
@@ -236,6 +325,30 @@ const AdminInterface: React.FC = () => {
     setToastMessage(message);
     setToastColor(color);
     setShowToast(true);
+  };
+
+  // Función para recargar pedidos
+  const reloadOrders = async () => {
+    try {
+      const ordersData = await ApiService.getOrders();
+      setPedidos(ordersData.map((o: any) => ({
+        id: o.id,
+        cliente_id: o.cliente_id,
+        cliente_nombre: o.cliente_nombre || 'Cliente desconocido',
+        vendedor_id: o.vendedor_id || null,
+        vendedor_nombre: o.vendedor_nombre || 'Sin asignar',
+        total: Number(o.total) || 0,
+        estado: o.estado || 'Pendiente',
+        direccion_entrega: o.direccion_entrega || '',
+        telefono_contacto: o.telefono_contacto || '',
+        fecha_pedido: o.fecha_pedido || new Date().toISOString(),
+        metodo_pago: o.metodo_pago || 'efectivo',
+        comprobante_pago: o.comprobante_pago || null
+      })));
+    } catch (error) {
+      console.error('Error recargando pedidos:', error);
+      showMessage('Error al recargar pedidos', 'danger');
+    }
   };
   
   // Calcular estadísticas
@@ -1000,27 +1113,34 @@ const AdminInterface: React.FC = () => {
                       >
                         <IonIcon icon={createOutline} />
                       </button>
-                      <button 
-                        className="admin-btn admin-btn-danger" 
+                      <button
+                        className="admin-btn admin-btn-danger"
                         style={{ padding: '8px 12px', fontSize: '0.8rem' }}
                         onClick={() => {
                           setAlertConfig({
                             isOpen: true,
                             header: 'Confirmar eliminación',
-                            message: `¿Estás seguro de eliminar "${producto.nombre}"?`,
+                            message: `¿Estás seguro de eliminar "${producto.nombre}"? Esta acción no se puede deshacer.`,
                             buttons: [
                               { text: 'Cancelar', role: 'cancel' },
                               {
                                 text: 'Eliminar',
-                                handler: () => {
-                                  setProductos(productos.filter(p => p.id !== producto.id));
-                                  showMessage(`Producto ${producto.nombre} eliminado`, 'success');
+                                handler: async () => {
+                                  try {
+                                    await ApiService.deleteProduct(producto.id);
+                                    setProductos(productos.filter(p => p.id !== producto.id));
+                                    showMessage(`Producto "${producto.nombre}" eliminado exitosamente`, 'success');
+                                  } catch (error: any) {
+                                    console.error('Error eliminando producto:', error);
+                                    showMessage(error.message || 'Error al eliminar producto', 'danger');
+                                  }
                                 }
                               }
                             ]
                           });
                           setShowAlert(true);
                         }}
+                        title="Eliminar producto"
                       >
                         <IonIcon icon={trashOutline} />
                       </button>
@@ -1035,6 +1155,275 @@ const AdminInterface: React.FC = () => {
       </div>
     </div>
   );
+
+  // Renderizar sección de pedidos
+  const renderPedidos = () => {
+    const pedidosPendientes = pedidos.filter(p => !p.vendedor_id);
+    const pedidosAsignados = pedidos.filter(p => p.vendedor_id && p.estado !== 'Entregado');
+    const pedidosEntregados = pedidos.filter(p => p.estado === 'Entregado');
+
+    const asignarPedidoAVendedor = async (pedidoId: number) => {
+      try {
+        const vendedoresData = await ApiService.getVendedores();
+
+        if (vendedoresData.length === 0) {
+          showMessage('No hay vendedores disponibles', 'warning');
+          return;
+        }
+
+        // Configurar el modal
+        setSelectedPedidoId(pedidoId);
+        setVendedoresDisponibles(vendedoresData);
+        setSelectedVendedorId(vendedoresData[0]?.id || null);
+        setShowAssignModal(true);
+      } catch (error: any) {
+        console.error('Error cargando vendedores:', error);
+        showMessage(error.message || 'Error al cargar vendedores', 'danger');
+      }
+    };
+
+    const confirmarAsignacion = async (vendedorIdFromAlert?: number) => {
+      const vendedorId = vendedorIdFromAlert || selectedVendedorId;
+
+      if (!selectedPedidoId || !vendedorId) {
+        showMessage('Selecciona un vendedor', 'warning');
+        return;
+      }
+
+      try {
+        await ApiService.assignOrder(selectedPedidoId, vendedorId);
+
+        // Recargar pedidos
+        await reloadOrders();
+
+        setShowAssignModal(false);
+        showMessage('Pedido asignado exitosamente', 'success');
+      } catch (error: any) {
+        console.error('Error asignando pedido:', error);
+        showMessage(error.message || 'Error al asignar pedido', 'danger');
+      }
+    };
+
+    return (
+      <div>
+        {/* Pedidos Pendientes */}
+        <div className="admin-card">
+          <div className="admin-card-header">
+            <h2 className="admin-card-title">
+              <IonIcon icon={timeOutline} />
+              Pedidos Pendientes de Asignación ({pedidosPendientes.length})
+            </h2>
+          </div>
+
+          {pedidosPendientes.length === 0 ? (
+            <div style={{ textAlign: 'center', padding: '40px', color: 'rgba(255, 255, 255, 0.7)' }}>
+              <IonIcon icon={checkmarkCircleOutline} style={{ fontSize: '64px', opacity: 0.3, marginBottom: '16px' }} />
+              <p>No hay pedidos pendientes</p>
+            </div>
+          ) : (
+            <div className="admin-table-container">
+              <table className="admin-table">
+                <thead>
+                  <tr>
+                    <th>ID</th>
+                    <th>Cliente</th>
+                    <th>Teléfono</th>
+                    <th>Dirección</th>
+                    <th>Total</th>
+                    <th>Pago</th>
+                    <th>Fecha</th>
+                    <th>Estado</th>
+                    <th>Acciones</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {pedidosPendientes.map(pedido => (
+                    <tr key={pedido.id}>
+                      <td>#{pedido.id}</td>
+                      <td style={{ fontWeight: '600' }}>{pedido.cliente_nombre || 'N/A'}</td>
+                      <td>{pedido.telefono_contacto || 'N/A'}</td>
+                      <td>{pedido.direccion_entrega || 'N/A'}</td>
+                      <td style={{ fontWeight: '700', color: '#10B981' }}>${Number(pedido.total || 0).toFixed(2)}</td>
+                      <td>
+                        {pedido.metodo_pago === 'transferencia' ? (
+                          <div>
+                            <span className="admin-badge admin-badge-success">Transferencia</span>
+                            {pedido.comprobante_pago && (
+                              <a
+                                href={`http://localhost:3001${pedido.comprobante_pago}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                style={{ display: 'block', marginTop: '4px', fontSize: '0.85rem', color: '#38BDF8' }}
+                              >
+                                📥 Ver Comprobante
+                              </a>
+                            )}
+                          </div>
+                        ) : (
+                          <span className="admin-badge admin-badge-secondary">Efectivo</span>
+                        )}
+                      </td>
+                      <td>{new Date(pedido.fecha_pedido).toLocaleString('es-EC')}</td>
+                      <td>
+                        <span className="admin-badge admin-badge-warning">
+                          <IonIcon icon={timeOutline} />
+                          Pendiente
+                        </span>
+                      </td>
+                      <td>
+                        <button
+                          className="admin-btn admin-btn-primary"
+                          style={{ padding: '8px 16px', fontSize: '0.85rem' }}
+                          onClick={() => asignarPedidoAVendedor(pedido.id)}
+                        >
+                          <IonIcon icon={personCircleOutline} />
+                          Asignar Vendedor
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+
+        {/* Pedidos Asignados en Proceso */}
+        <div className="admin-card">
+          <div className="admin-card-header">
+            <h2 className="admin-card-title">
+              <IonIcon icon={carOutline} />
+              Pedidos en Proceso ({pedidosAsignados.length})
+            </h2>
+          </div>
+
+          {pedidosAsignados.length === 0 ? (
+            <div style={{ textAlign: 'center', padding: '40px', color: 'rgba(255, 255, 255, 0.7)' }}>
+              <p>No hay pedidos en proceso</p>
+            </div>
+          ) : (
+            <div className="admin-table-container">
+              <table className="admin-table">
+                <thead>
+                  <tr>
+                    <th>ID</th>
+                    <th>Cliente</th>
+                    <th>Vendedor</th>
+                    <th>Dirección</th>
+                    <th>Total</th>
+                    <th>Pago</th>
+                    <th>Estado</th>
+                    <th>Fecha</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {pedidosAsignados.map(pedido => (
+                    <tr key={pedido.id}>
+                      <td>#{pedido.id}</td>
+                      <td style={{ fontWeight: '600' }}>{pedido.cliente_nombre || 'N/A'}</td>
+                      <td>
+                        <span className="admin-badge admin-badge-primary">
+                          {pedido.vendedor_nombre || 'Sin asignar'}
+                        </span>
+                      </td>
+                      <td>{pedido.direccion_entrega || 'N/A'}</td>
+                      <td style={{ fontWeight: '700', color: '#10B981' }}>${Number(pedido.total || 0).toFixed(2)}</td>
+                      <td>
+                        {pedido.metodo_pago === 'transferencia' ? (
+                          <div>
+                            <span className="admin-badge admin-badge-success">Transferencia</span>
+                            {pedido.comprobante_pago && (
+                              <a
+                                href={`http://localhost:3001${pedido.comprobante_pago}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                style={{ display: 'block', marginTop: '4px', fontSize: '0.85rem', color: '#38BDF8' }}
+                              >
+                                📥 Ver Comprobante
+                              </a>
+                            )}
+                          </div>
+                        ) : (
+                          <span className="admin-badge admin-badge-secondary">Efectivo</span>
+                        )}
+                      </td>
+                      <td>
+                        <span className="admin-badge admin-badge-primary">
+                          {pedido.estado}
+                        </span>
+                      </td>
+                      <td>{new Date(pedido.fecha_pedido).toLocaleString('es-EC')}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+
+        {/* Pedidos Entregados */}
+        <div className="admin-card">
+          <div className="admin-card-header">
+            <h2 className="admin-card-title">
+              <IonIcon icon={checkmarkCircleOutline} />
+              Pedidos Entregados ({pedidosEntregados.length})
+            </h2>
+          </div>
+
+          {pedidosEntregados.length === 0 ? (
+            <div style={{ textAlign: 'center', padding: '40px', color: 'rgba(255, 255, 255, 0.7)' }}>
+              <p>No hay pedidos entregados</p>
+            </div>
+          ) : (
+            <div className="admin-table-container">
+              <table className="admin-table">
+                <thead>
+                  <tr>
+                    <th>ID</th>
+                    <th>Cliente</th>
+                    <th>Vendedor</th>
+                    <th>Total</th>
+                    <th>Pago</th>
+                    <th>Fecha Pedido</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {pedidosEntregados.map(pedido => (
+                    <tr key={pedido.id}>
+                      <td>#{pedido.id}</td>
+                      <td>{pedido.cliente_nombre || 'N/A'}</td>
+                      <td>{pedido.vendedor_nombre || 'Sin asignar'}</td>
+                      <td style={{ fontWeight: '700', color: '#10B981' }}>${Number(pedido.total || 0).toFixed(2)}</td>
+                      <td>
+                        {pedido.metodo_pago === 'transferencia' ? (
+                          <div>
+                            <span className="admin-badge admin-badge-success">Transferencia</span>
+                            {pedido.comprobante_pago && (
+                              <a
+                                href={`http://localhost:3001${pedido.comprobante_pago}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                style={{ display: 'block', marginTop: '4px', fontSize: '0.85rem', color: '#38BDF8' }}
+                              >
+                                📥 Ver Comprobante
+                              </a>
+                            )}
+                          </div>
+                        ) : (
+                          <span className="admin-badge admin-badge-secondary">Efectivo</span>
+                        )}
+                      </td>
+                      <td>{new Date(pedido.fecha_pedido).toLocaleString('es-EC')}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  };
 
   // Renderizar sección de reportes
   const renderReportes = () => (
@@ -1212,6 +1601,8 @@ const AdminInterface: React.FC = () => {
         return renderUsuarios();
       case 'productos':
         return renderProductos();
+      case 'pedidos':
+        return renderPedidos();
       case 'reportes':
         return renderReportes();
       default:
@@ -1271,7 +1662,18 @@ const AdminInterface: React.FC = () => {
                 <IonIcon icon={cubeOutline} />
                 <span className="admin-nav-text">Productos</span>
               </button>
-              
+
+              <button
+                className={`admin-nav-item ${activeSection === 'pedidos' ? 'active' : ''}`}
+                onClick={() => {
+                  setActiveSection('pedidos');
+                  setSidebarOpen(false);
+                }}
+              >
+                <IonIcon icon={cartOutline} />
+                <span className="admin-nav-text">Pedidos</span>
+              </button>
+
               <button
                 className={`admin-nav-item ${activeSection === 'reportes' ? 'active' : ''}`}
                 onClick={() => {
@@ -1332,12 +1734,14 @@ const AdminInterface: React.FC = () => {
                     activeSection === 'dashboard' ? gridOutline :
                     activeSection === 'usuarios' ? peopleOutline :
                     activeSection === 'productos' ? cubeOutline :
+                    activeSection === 'pedidos' ? cartOutline :
                     activeSection === 'reportes' ? analyticsOutline :
                     gridOutline
                   } />
                   {activeSection === 'dashboard' && 'Panel de Control'}
                   {activeSection === 'usuarios' && 'Gestión de Usuarios'}
                   {activeSection === 'productos' && 'Gestión de Productos'}
+                  {activeSection === 'pedidos' && 'Gestión de Pedidos'}
                   {activeSection === 'reportes' && 'Reportes y Análisis'}
                 </div>
               </div>
@@ -1356,9 +1760,34 @@ const AdminInterface: React.FC = () => {
                 </div>
                 
                 {/* Notificaciones */}
-                <button className="admin-notifications">
+                <button
+                  className="admin-notifications"
+                  onClick={() => {
+                    setNotificationCount(0);
+                    setActiveSection('pedidos');
+                  }}
+                  title={`${notificationCount} notificaciones nuevas`}
+                >
                   <IonIcon icon={notificationsOutline} />
-                  <div className="admin-notification-badge"></div>
+                  {notificationCount > 0 && (
+                    <div className="admin-notification-badge" style={{
+                      position: 'absolute',
+                      top: '-4px',
+                      right: '-4px',
+                      background: '#EF4444',
+                      color: 'white',
+                      borderRadius: '50%',
+                      width: '20px',
+                      height: '20px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontSize: '0.7rem',
+                      fontWeight: 'bold'
+                    }}>
+                      {notificationCount}
+                    </div>
+                  )}
                 </button>
                 
                 {/* Botón de logout */}
@@ -1389,7 +1818,63 @@ const AdminInterface: React.FC = () => {
           color={toastColor}
           position="top"
         />
-        
+
+        {/* Toast especial para notificaciones de pedidos */}
+        <IonToast
+          isOpen={showNotificationToast}
+          onDidDismiss={() => setShowNotificationToast(false)}
+          message={notificationData ? `🔔 Nuevo Pedido de ${notificationData.cliente}: $${notificationData.total} (${notificationData.items} items)` : ''}
+          duration={5000}
+          color="primary"
+          position="top"
+          buttons={[
+            {
+              text: 'Ver',
+              handler: () => {
+                setActiveSection('pedidos');
+                setNotificationCount(0);
+              }
+            }
+          ]}
+        />
+
+        {/* Modal para asignar vendedor - SIMPLE */}
+        <IonAlert
+          isOpen={showAssignModal}
+          onDidDismiss={() => setShowAssignModal(false)}
+          header="👤 Asignar Vendedor"
+          message="Selecciona el vendedor que entregará este pedido"
+          inputs={vendedoresDisponibles.map((vendedor) => ({
+            type: 'radio',
+            label: `${vendedor.nombre} - ${vendedor.email}`,
+            value: vendedor.id,
+            checked: selectedVendedorId === vendedor.id
+          }))}
+          buttons={[
+            {
+              text: 'Cancelar',
+              role: 'cancel',
+              cssClass: 'secondary'
+            },
+            {
+              text: 'Asignar',
+              handler: async (vendedorId) => {
+                if (vendedorId && selectedPedidoId) {
+                  try {
+                    await ApiService.assignOrder(selectedPedidoId, Number(vendedorId));
+                    await reloadOrders();
+                    setShowAssignModal(false);
+                    showMessage('Pedido asignado exitosamente', 'success');
+                  } catch (error: any) {
+                    console.error('Error asignando pedido:', error);
+                    showMessage(error.message || 'Error al asignar pedido', 'danger');
+                  }
+                }
+              }
+            }
+          ]}
+        />
+
         {/* Alert para confirmaciones */}
         <IonAlert
           isOpen={showAlert}

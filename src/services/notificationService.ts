@@ -65,6 +65,18 @@ class NotificationService {
     this.listeners.get(eventName)?.push(callback);
   }
 
+  // Escuchar notificación de actualización de estado de pedido (para admin)
+  onOrderStatusUpdated(callback: (data: any) => void) {
+    if (!this.socket) return;
+
+    this.socket.on('order_status_updated', callback);
+
+    if (!this.listeners.has('order_status_updated')) {
+      this.listeners.set('order_status_updated', []);
+    }
+    this.listeners.get('order_status_updated')?.push(callback);
+  }
+
   // Desuscribirse de todos los eventos
   off(eventName: string) {
     if (!this.socket) return;

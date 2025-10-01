@@ -8,7 +8,16 @@
       "Bash(npm install)",
       "Bash(npm run dev:*)",
       "Bash(npm install:*)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(git commit -m \"$(cat <<''EOF''\nAguaPiatuaconAPIyBd\n\nImplementación completa de backend Node.js con MySQL y funcionalidades avanzadas:\n\nBackend:\n- Servidor Express con rutas REST completas (auth, users, products, orders, deliveries)\n- Base de datos MySQL con esquema completo y datos de ejemplo\n- Autenticación JWT con bcrypt\n- Google OAuth (web y móvil) con Passport.js\n- Socket.IO para notificaciones en tiempo real\n- Middleware de seguridad (helmet, cors, rate-limit)\n\nFrontend:\n- Login multi-usuario (Cliente/Vendedor/Admin) con email/password\n- Login con Google (web y Capacitor móvil)\n- AdminDashboard con gestión completa:\n  * CRUD de productos conectado a BD\n  * CRUD de usuarios conectado a BD\n  * Edición en tiempo real con modales\n  * Cambio de contraseñas\n- Home del cliente con productos desde BD\n- Servicio API completo (apiService.ts)\n- Servicio de notificaciones (notificationService.ts)\n\nBase de Datos:\n- Esquema completo con 7 tablas\n- Usuarios, productos, pedidos, entregas, inventario\n- Datos de ejemplo precargados\n- Relaciones y constraints\n\nConfiguración:\n- Variables de entorno (.env) configuradas\n- Google OAuth credentials integradas\n- Capacitor config para móvil\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nEOF\n)\")",
+      "Bash(curl:*)",
+      "Bash(netstat:*)",
+      "Bash(npm start)",
+      "Bash(timeout:*)",
+      "Bash(pgrep:*)",
+      "Bash(tasklist)",
+      "Bash(taskkill:*)",
+      "Bash(git log:*)"
     ],
     "deny": [],
     "ask": []

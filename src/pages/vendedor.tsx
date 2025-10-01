@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useHistory } from 'react-router-dom';
 import './vendedor.css';
+import notificationService from '../services/notificationService';
+import ApiService from '../services/apiService';
 
 import {
   IonButtons, IonContent, IonHeader, IonPage,
@@ -36,6 +38,8 @@ type Pedido = {
   estado: EstadoEntrega;
   prioridad: 'alta' | 'media' | 'baja';
   notas?: string;
+  metodo_pago?: string;
+  comprobante_pago?: string;
 };
 
 // Datos simulados de pedidos asignados
@@ -96,6 +100,7 @@ export default function VendedorRepartidor() {
   const [toastMessage, setToastMessage] = useState('');
   const [toastColor, setToastColor] = useState<'success' | 'warning' | 'danger'>('success');
   const [isLoading, setIsLoading] = useState(true);
+  const [notificationCount, setNotificationCount] = useState(0);
 
   // Datos del repartidor
   const vendedorNombre = localStorage.getItem('username') || 'Repartidor';
@@ -122,12 +127,61 @@ export default function VendedorRepartidor() {
       return;
     }
 
-    // Simular carga inicial
-    const timer = setTimeout(() => {
-      setIsLoading(false);
-    }, 1000);
+    // Cargar pedidos desde la API
+    const loadPedidos = async () => {
+      try {
+        console.log('Cargando pedidos del vendedor...');
+        console.log('Token:', localStorage.getItem('aguapiatua_token'));
+        const ordersData = await ApiService.getOrders();
+        console.log('✅ Pedidos del vendedor recibidos:', ordersData);
 
-    return () => clearTimeout(timer);
+        // Mapear pedidos de la API al formato local
+        const mappedPedidos = ordersData.map((o: any) => ({
+          id: o.id,
+          cliente: o.cliente_nombre,
+          telefono: o.telefono_contacto,
+          direccion: o.direccion_entrega,
+          productos: [], // Los detalles de productos vendrían de otra llamada si es necesario
+          total: Number(o.total),
+          hora_asignacion: new Date(o.fecha_pedido).toLocaleTimeString('es-EC', { hour: '2-digit', minute: '2-digit' }),
+          hora_estimada: '-',
+          estado: o.estado === 'En_Camino' ? 'en_ruta' :
+                 o.estado === 'Entregado' ? 'entregado' :
+                 o.estado === 'Cancelado' ? 'cancelado' : 'pendiente' as EstadoEntrega,
+          prioridad: 'media' as 'alta' | 'media' | 'baja',
+          notas: o.notas
+        }));
+
+        setPedidos(mappedPedidos);
+      } catch (error) {
+        console.error('Error cargando pedidos:', error);
+        showMessage('Error al cargar pedidos', 'danger');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadPedidos();
+
+    // Conectar Socket.IO para notificaciones
+    const userId = localStorage.getItem('userId');
+    if (userId) {
+      notificationService.connect(parseInt(userId), 'Vendedor');
+
+      // Escuchar pedidos asignados
+      notificationService.onOrderAssigned(parseInt(userId), (data) => {
+        console.log('🔔 Pedido asignado recibido:', data);
+        setNotificationCount(prev => prev + 1);
+        showMessage(`📦 Nuevo pedido asignado: Pedido #${data.orderId} - $${data.total}`, 'success');
+
+        // Recargar pedidos
+        loadPedidos();
+      });
+    }
+
+    return () => {
+      notificationService.disconnect();
+    };
   }, [history]);
 
   // Función para mostrar mensajes
@@ -138,23 +192,37 @@ export default function VendedorRepartidor() {
   };
 
   // Función para cambiar estado de pedido
-  const cambiarEstadoPedido = (id: number, nuevoEstado: EstadoEntrega) => {
-    setPedidos(prev => 
-      prev.map(pedido => 
-        pedido.id === id 
-          ? { ...pedido, estado: nuevoEstado }
-          : pedido
-      )
-    );
+  const cambiarEstadoPedido = async (id: number, nuevoEstado: EstadoEntrega) => {
+    try {
+      // Mapear estados del frontend al backend
+      const estadoBackend = nuevoEstado === 'en_ruta' ? 'En_Camino' :
+                           nuevoEstado === 'entregado' ? 'Entregado' :
+                           nuevoEstado === 'cancelado' ? 'Cancelado' : 'Pendiente';
 
-    const mensajes: Record<EstadoEntrega, string> = {
-      'pendiente': 'Pedido en estado pendiente',
-      'en_ruta': 'Pedido marcado como "En Ruta"',
-      'entregado': '¡Entrega completada exitosamente!',
-      'cancelado': 'Pedido cancelado'
-    };
+      // Actualizar en la API
+      await ApiService.updateOrderStatus(id, estadoBackend);
 
-    showMessage(mensajes[nuevoEstado] || 'Estado actualizado');
+      // Actualizar estado local
+      setPedidos(prev =>
+        prev.map(pedido =>
+          pedido.id === id
+            ? { ...pedido, estado: nuevoEstado }
+            : pedido
+        )
+      );
+
+      const mensajes: Record<EstadoEntrega, string> = {
+        'pendiente': 'Pedido en estado pendiente',
+        'en_ruta': 'Pedido marcado como "En Ruta"',
+        'entregado': '¡Entrega completada exitosamente!',
+        'cancelado': 'Pedido cancelado'
+      };
+
+      showMessage(mensajes[nuevoEstado] || 'Estado actualizado');
+    } catch (error: any) {
+      console.error('Error actualizando estado:', error);
+      showMessage(error.message || 'Error al actualizar estado', 'danger');
+    }
   };
 
   // Función para abrir GPS/Mapa
@@ -242,6 +310,11 @@ export default function VendedorRepartidor() {
               <IonBadge color="light">
                 {pedidosPendientes} pendientes
               </IonBadge>
+              {notificationCount > 0 && (
+                <IonBadge color="danger" style={{ marginLeft: '8px' }}>
+                  {notificationCount} nuevos
+                </IonBadge>
+              )}
             </IonButtons>
           </IonToolbar>
         </IonHeader>
@@ -355,6 +428,44 @@ export default function VendedorRepartidor() {
                     <div className="total-pedido">
                       <strong>Total: ${pedido.total.toFixed(2)}</strong>
                     </div>
+                  </div>
+
+                  {/* Método de pago */}
+                  <div className="metodo-pago" style={{
+                    padding: '12px',
+                    background: 'rgba(56, 189, 248, 0.1)',
+                    borderRadius: '8px',
+                    marginBottom: '12px'
+                  }}>
+                    <strong>Método de Pago: </strong>
+                    {pedido.metodo_pago === 'transferencia' ? (
+                      <>
+                        <span style={{ color: '#10B981', fontWeight: '600' }}>Transferencia Bancaria</span>
+                        {pedido.comprobante_pago && (
+                          <div style={{ marginTop: '8px' }}>
+                            <a
+                              href={`http://localhost:3001${pedido.comprobante_pago}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              style={{
+                                display: 'inline-block',
+                                padding: '6px 12px',
+                                background: '#38BDF8',
+                                color: 'white',
+                                borderRadius: '6px',
+                                textDecoration: 'none',
+                                fontSize: '0.9rem',
+                                fontWeight: '600'
+                              }}
+                            >
+                              📥 Ver Comprobante de Transferencia
+                            </a>
+                          </div>
+                        )}
+                      </>
+                    ) : (
+                      <span style={{ color: '#F59E0B', fontWeight: '600' }}>Efectivo (Contra Entrega)</span>
+                    )}
                   </div>
 
                   {/* Notas especiales */}

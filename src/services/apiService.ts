@@ -23,8 +23,11 @@ class ApiService {
       'Content-Type': 'application/json',
     };
 
-    if (this.token) {
-      headers['Authorization'] = `Bearer ${this.token}`;
+    // Obtener el token más reciente de localStorage
+    const currentToken = localStorage.getItem('aguapiatua_token');
+    if (currentToken) {
+      this.token = currentToken;
+      headers['Authorization'] = `Bearer ${currentToken}`;
     }
 
     return headers;
@@ -32,7 +35,7 @@ class ApiService {
 
   // Método HTTP genérico
   private async request<T>(
-    endpoint: string, 
+    endpoint: string,
     options: RequestInit = {}
   ): Promise<T> {
     const url = `${this.baseURL}${endpoint}`;
@@ -42,33 +45,88 @@ class ApiService {
     };
 
     try {
-      const response = await fetch(url, config);
-      const data = await response.json();
+      console.log(`📤 ${options.method || 'GET'} ${url}`);
+      console.log(`📋 Config:`, JSON.stringify(config.headers));
 
-      if (!response.ok) {
-        throw new Error(data.error || `HTTP error! status: ${response.status}`);
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 segundos timeout
+
+      const response = await fetch(url, {
+        ...config,
+        signal: controller.signal
+      });
+
+      clearTimeout(timeoutId);
+
+      console.log(`📥 ${response.status} ${response.statusText}`);
+
+      // Verificar si la respuesta es JSON
+      const contentType = response.headers.get('content-type');
+      let data;
+
+      if (contentType && contentType.includes('application/json')) {
+        data = await response.json();
+      } else {
+        const text = await response.text();
+        console.error(`❌ Respuesta no es JSON:`, text.substring(0, 200));
+        throw new Error('El servidor no respondió con JSON válido');
       }
 
+      if (!response.ok) {
+        const errorMsg = data.error || data.message || `HTTP error! status: ${response.status}`;
+        console.error(`❌ Error HTTP:`, errorMsg);
+        throw new Error(errorMsg);
+      }
+
+      console.log(`✅ Respuesta exitosa`);
       return data;
-    } catch (error) {
-      console.error(`API Error en ${endpoint}:`, error);
+    } catch (error: any) {
+      console.error(`❌ Error en ${endpoint}:`, error.message);
+      console.error(`❌ Error type:`, error.name);
+
+      // Si es timeout
+      if (error.name === 'AbortError') {
+        throw new Error('Tiempo de espera agotado. El servidor no responde.');
+      }
+
+      // Si es un error de red (Failed to fetch)
+      if (error.message && (error.message.includes('fetch') || error.name === 'TypeError')) {
+        // Intentar verificar si es problema de CORS o red
+        console.error('💡 AYUDA: Si ves este error:');
+        console.error('1. Cierra Chrome completamente');
+        console.error('2. Abre Chrome de nuevo o usa Incógnito (Ctrl+Shift+N)');
+        console.error('3. Borra caché: Ctrl+Shift+Delete');
+        console.error('4. Verifica que no tengas extensiones bloqueando');
+        throw new Error('❌ Error de conexión. Por favor:\n1. Abre Chrome en modo incógnito (Ctrl+Shift+N)\n2. O borra caché (Ctrl+Shift+Delete)\n3. Recarga la página');
+      }
+
       throw error;
     }
   }
 
   // Métodos de autenticación
   async login(email: string, password: string) {
-    const response = await this.request<{
-      message: string;
-      token: string;
-      user: any;
-    }>('/auth/login', {
-      method: 'POST',
-      body: JSON.stringify({ email, password }),
-    });
+    console.log('🔐 Intentando login con:', email);
 
-    this.setToken(response.token);
-    return response;
+    try {
+      const response = await this.request<{
+        message: string;
+        token: string;
+        user: any;
+      }>('/auth/login', {
+        method: 'POST',
+        body: JSON.stringify({ email, password }),
+      });
+
+      console.log('🔐 Login exitoso, guardando token...');
+      this.setToken(response.token);
+      console.log('🔐 Token guardado:', response.token.substring(0, 20) + '...');
+
+      return response;
+    } catch (error: any) {
+      console.error('🔐 Error en login:', error);
+      throw error;
+    }
   }
 
   async register(userData: {
@@ -158,6 +216,14 @@ class ApiService {
     }>(`/products/${id}/stock`, {
       method: 'PATCH',
       body: JSON.stringify({ stock }),
+    });
+  }
+
+  async deleteProduct(id: number) {
+    return this.request<{
+      message: string;
+    }>(`/products/${id}`, {
+      method: 'DELETE',
     });
   }
 
@@ -297,6 +363,69 @@ class ApiService {
       timestamp: string;
       service: string;
     }>('/health');
+  }
+
+  // Métodos para subida de archivos
+  async uploadComprobante(file: File, orderId?: number) {
+    const formData = new FormData();
+    formData.append('comprobante', file);
+
+    if (orderId) {
+      formData.append('orderId', orderId.toString());
+    }
+
+    const url = `${this.baseURL}/uploads/comprobante`;
+    const currentToken = localStorage.getItem('aguapiatua_token');
+
+    try {
+      console.log(`📤 POST ${url}`);
+      console.log(`📋 Subiendo archivo: ${file.name}`);
+
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Authorization': currentToken ? `Bearer ${currentToken}` : ''
+        },
+        body: formData
+      });
+
+      console.log(`📥 ${response.status} ${response.statusText}`);
+
+      const contentType = response.headers.get('content-type');
+      let data;
+
+      if (contentType && contentType.includes('application/json')) {
+        data = await response.json();
+      } else {
+        const text = await response.text();
+        console.error(`❌ Respuesta no es JSON:`, text.substring(0, 200));
+        throw new Error('El servidor no respondió con JSON válido');
+      }
+
+      if (!response.ok) {
+        const errorMsg = data.error || data.message || `HTTP error! status: ${response.status}`;
+        console.error(`❌ Error HTTP:`, errorMsg);
+        throw new Error(errorMsg);
+      }
+
+      console.log(`✅ Archivo subido exitosamente`);
+      return data;
+    } catch (error: any) {
+      console.error(`❌ Error subiendo archivo:`, error.message);
+      throw error;
+    }
+  }
+
+  async getComprobante(filename: string) {
+    return `${this.baseURL}/uploads/comprobante/${filename}`;
+  }
+
+  async deleteComprobante(filename: string) {
+    return this.request<{
+      message: string;
+    }>(`/uploads/comprobante/${filename}`, {
+      method: 'DELETE'
+    });
   }
 }
 

@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test de Conexión - Agua Piatua</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .test {
+            background: white;
+            padding: 20px;
+            margin: 10px 0;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .success { border-left: 4px solid #10b981; }
+        .error { border-left: 4px solid #ef4444; }
+        .pending { border-left: 4px solid #f59e0b; }
+        pre {
+            background: #f3f4f6;
+            padding: 10px;
+            border-radius: 4px;
+            overflow-x: auto;
+        }
+        button {
+            background: #3b82f6;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover {
+            background: #2563eb;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔍 Test de Conexión - Agua Piatua Backend</h1>
+
+    <div id="results"></div>
+
+    <button onclick="runTests()">🔄 Ejecutar Tests</button>
+
+    <script>
+        const results = document.getElementById('results');
+
+        async function runTests() {
+            results.innerHTML = '<div class="test pending"><h3>⏳ Ejecutando tests...</h3></div>';
+
+            const tests = [
+                { name: 'Test 1: Conectividad básica', url: 'http://localhost:3001/api/health' },
+                { name: 'Test 2: Lista de productos', url: 'http://localhost:3001/api/products' },
+                { name: 'Test 3: Socket.IO', url: 'http://localhost:3001/socket.io/' }
+            ];
+
+            let html = '';
+
+            for (const test of tests) {
+                html += `<div class="test pending">
+                    <h3>${test.name}</h3>
+                    <p>URL: <code>${test.url}</code></p>
+                    <p>Estado: Ejecutando...</p>
+                </div>`;
+                results.innerHTML = html;
+
+                try {
+                    const startTime = Date.now();
+                    const response = await fetch(test.url, {
+                        method: 'GET',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        }
+                    });
+                    const endTime = Date.now();
+                    const duration = endTime - startTime;
+
+                    let data;
+                    const contentType = response.headers.get('content-type');
+                    if (contentType && contentType.includes('application/json')) {
+                        data = await response.json();
+                    } else {
+                        data = await response.text();
+                    }
+
+                    html = html.replace(
+                        new RegExp(`<div class="test pending">([\\s\\S]*?)${test.name}([\\s\\S]*?)</div>`),
+                        `<div class="test ${response.ok ? 'success' : 'error'}">
+                            <h3>${response.ok ? '✅' : '❌'} ${test.name}</h3>
+                            <p>URL: <code>${test.url}</code></p>
+                            <p>Estado: <strong>${response.status} ${response.statusText}</strong></p>
+                            <p>Tiempo de respuesta: ${duration}ms</p>
+                            <p>Respuesta:</p>
+                            <pre>${typeof data === 'object' ? JSON.stringify(data, null, 2) : data.substring(0, 200)}</pre>
+                        </div>`
+                    );
+                    results.innerHTML = html;
+                } catch (error) {
+                    html = html.replace(
+                        new RegExp(`<div class="test pending">([\\s\\S]*?)${test.name}([\\s\\S]*?)</div>`),
+                        `<div class="test error">
+                            <h3>❌ ${test.name}</h3>
+                            <p>URL: <code>${test.url}</code></p>
+                            <p>Estado: <strong>ERROR</strong></p>
+                            <p>Error: ${error.message}</p>
+                            <pre>${error.stack || 'No stack trace'}</pre>
+                            <p><strong>Posibles causas:</strong></p>
+                            <ul>
+                                <li>Backend no está corriendo</li>
+                                <li>Firewall bloqueando puerto 3001</li>
+                                <li>CORS no configurado correctamente</li>
+                                <li>Navegador bloqueando conexión localhost</li>
+                            </ul>
+                        </div>`
+                    );
+                    results.innerHTML = html;
+                }
+            }
+        }
+
+        // Ejecutar automáticamente al cargar
+        window.addEventListener('load', runTests);
+    </script>
+</body>
+</html>

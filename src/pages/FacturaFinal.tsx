@@ -11,15 +11,16 @@ import {
   IonIcon
 } from '@ionic/react';
 import { useHistory } from 'react-router-dom';
-import { 
-  checkmarkCircleOutline, 
-  cardOutline, 
+import {
+  checkmarkCircleOutline,
+  cardOutline,
   cashOutline,
   homeOutline,
   documentTextOutline,
   cloudUploadOutline,
   arrowBackOutline
 } from 'ionicons/icons';
+import ApiService from '../services/apiService';
 import './FacturaFinal.css';
 
 // Tipos TypeScript
@@ -122,29 +123,67 @@ const FacturaFinal: React.FC<FacturaFinalProps> = (props) => {
     setIsLoading(true);
 
     try {
-      // Simular procesamiento
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      // Obtener información del usuario
+      const userData = JSON.parse(localStorage.getItem('aguapiatua_user') || '{}');
+      const telefono = userData.telefono || '';
 
-      // Preparar datos para el comprobante
+      // Preparar items del pedido
+      const items = cart.map(item => ({
+        product_id: item.id,
+        cantidad: item.qty,
+        precio_unitario: Number(item.precio)
+      }));
+
+      // Preparar notas con información del pago
+      let notas = `Método de pago: ${payment === 'efectivo' ? 'Efectivo' : 'Transferencia'}`;
+
+      // Crear pedido en la API
+      const orderData = {
+        items,
+        direccion_entrega: address,
+        telefono_contacto: telefono,
+        notas,
+        metodo_pago: payment
+      };
+
+      console.log('Enviando pedido:', orderData);
+      const response = await ApiService.createOrder(orderData);
+      console.log('Pedido creado:', response);
+
+      // Si hay comprobante de transferencia, subirlo a la API
       let comprobanteUrl = null;
       if (payment === 'transferencia' && comprobante) {
-        comprobanteUrl = URL.createObjectURL(comprobante);
+        try {
+          console.log('Subiendo comprobante de pago...');
+          const uploadResponse = await ApiService.uploadComprobante(comprobante, response.order.id);
+          console.log('Comprobante subido:', uploadResponse);
+          comprobanteUrl = `${ApiService['baseURL']}${uploadResponse.file.path}`;
+          setToastMessage('Pedido y comprobante enviados correctamente');
+        } catch (uploadError: any) {
+          console.error('Error al subir comprobante:', uploadError);
+          setToastMessage('Pedido creado, pero hubo un error al subir el comprobante');
+        }
       }
+
+      // Limpiar carrito
+      localStorage.removeItem('cart');
 
       // Navegar al comprobante
       history.push({
         pathname: '/comprobante-pedido',
-        state: { 
-          address, 
-          payment, 
-          cart, 
-          totalPrice, 
-          comprobanteUrl 
+        state: {
+          address,
+          payment,
+          cart,
+          totalPrice,
+          comprobanteUrl,
+          orderId: response.order.id
         }
       });
 
-    } catch (error) {
-      setToastMessage('Error al procesar el pedido. Intenta nuevamente.');
+    } catch (error: any) {
+      console.error('Error al crear pedido:', error);
+      setToastMessage(error.message || 'Error al procesar el pedido. Intenta nuevamente.');
       setShowToast(true);
     } finally {
       setIsLoading(false);

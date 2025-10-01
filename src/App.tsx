@@ -8,26 +8,29 @@ import FacturaFinal from './pages/FacturaFinal';
 import ComprobantePedido from './pages/ComprobantePedido';
 import AdminDashboard from './pages/AdminDashboard';
 import VendedorRepartidor from './pages/vendedor';
+import HistorialPedidos from './pages/HistorialPedidos';
+
 // Componente de ruta protegida
-const ProtectedRoute: React.FC<{ 
-  children: React.ReactNode; 
+const ProtectedRoute: React.FC<{
+  children: React.ReactNode;
   allowedUserTypes?: string[];
   redirectTo?: string;
 }> = ({ children, allowedUserTypes = [], redirectTo = '/login' }) => {
   const isAuthenticated = localStorage.getItem('isAuthenticated') === 'true';
+  const token = localStorage.getItem('aguapiatua_token');
   const userType = localStorage.getItem('userType') || '';
-  if (!isAuthenticated) {
+
+  // Si no hay autenticación básica, redirigir al login
+  if (!isAuthenticated || !token) {
     return <Redirect to={redirectTo} />;
   }
+
+  // Verificar tipo de usuario permitido
   if (allowedUserTypes.length > 0 && !allowedUserTypes.includes(userType)) {
-    if (userType === 'administrador') {
-      return <Redirect to="/admin-dashboard" />;
-    } else if (userType === 'vendedor') {
-      return <Redirect to="/vendedor-dashboard" />;
-    } else {
-      return <Redirect to="/home" />;
-    }
+    return <Redirect to={redirectTo} />;
   }
+
+  // Si todo está bien, renderizar los hijos
   return <>{children}</>;
 };
 
@@ -76,6 +79,11 @@ const App: React.FC = () => (
         <Route exact path="/home">
           <ProtectedRoute>
             <Home />
+          </ProtectedRoute>
+        </Route>
+        <Route exact path="/historial-pedidos">
+          <ProtectedRoute allowedUserTypes={['cliente', 'Cliente']}>
+            <HistorialPedidos />
           </ProtectedRoute>
         </Route>
         <Route exact path="/admin-dashboard">

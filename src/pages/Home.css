@@ -436,10 +436,299 @@ ion-menu ion-item:hover {
     margin: 2px 8px !important;
     padding: 12px 16px !important;
   }
-  
+
   .menu-icon,
   .menu-icon-danger {
     font-size: 1.1rem !important;
     margin-right: 10px !important;
+  }
+}
+
+/* ===== ESTILOS PARA SIDEBAR DE PEDIDOS ===== */
+
+/* Backdrop para cerrar sidebar */
+.sidebar-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(4px);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+  z-index: 9998;
+}
+
+.sidebar-backdrop.open {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* Sidebar de pedidos */
+.sidebar-pedidos {
+  position: fixed;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: min(400px, 85vw);
+  background: rgba(30, 41, 59, 0.98);
+  backdrop-filter: blur(25px);
+  border-right: 1px solid rgba(56, 189, 248, 0.2);
+  box-shadow: 8px 0 40px rgba(0, 0, 0, 0.3);
+  display: flex;
+  flex-direction: column;
+  transform: translateX(-100%);
+  transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  z-index: 9999;
+  overflow: hidden;
+}
+
+.sidebar-pedidos.open {
+  transform: translateX(0);
+}
+
+/* Header del sidebar */
+.sidebar-header {
+  background: linear-gradient(135deg, #0EA5E9, #38BDF8);
+  color: #ffffff;
+  padding: 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.sidebar-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 1.2rem;
+  font-weight: 800;
+}
+
+.sidebar-title ion-icon {
+  font-size: 1.5rem;
+}
+
+.sidebar-actions {
+  display: flex;
+  gap: 8px;
+}
+
+/* Body del sidebar */
+.sidebar-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px;
+}
+
+/* Estados de loading y empty */
+.sidebar-loading,
+.sidebar-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: rgba(255, 255, 255, 0.7);
+  text-align: center;
+  padding: 32px;
+}
+
+.sidebar-loading ion-spinner {
+  margin-bottom: 16px;
+  --color: #38BDF8;
+}
+
+.sidebar-empty ion-icon {
+  margin-bottom: 16px;
+  color: rgba(255, 255, 255, 0.3);
+}
+
+/* Lista de pedidos */
+.pedidos-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* Item de pedido individual */
+.pedido-item {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(56, 189, 248, 0.2);
+  border-radius: 16px;
+  padding: 16px;
+  transition: all 0.3s ease;
+}
+
+.pedido-item:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(56, 189, 248, 0.4);
+  transform: translateX(4px);
+}
+
+/* Header del item de pedido */
+.pedido-item-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 12px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.pedido-item-header strong {
+  color: #38BDF8;
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+
+.pedido-fecha {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.6);
+  margin-top: 4px;
+}
+
+.pedido-fecha ion-icon {
+  font-size: 1rem;
+}
+
+/* Badge de estado */
+.pedido-item-header ion-badge {
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 6px 12px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.pedido-item-header ion-badge ion-icon {
+  font-size: 1rem;
+}
+
+/* Body del item de pedido */
+.pedido-item-body {
+  margin-bottom: 12px;
+}
+
+.pedido-info-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 0.9rem;
+  margin-bottom: 8px;
+}
+
+.pedido-info-row ion-icon {
+  color: #38BDF8;
+  font-size: 1.1rem;
+  flex-shrink: 0;
+}
+
+.pedido-info-row span {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Footer del item de pedido */
+.pedido-item-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.pedido-total {
+  color: #38BDF8;
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+
+.pedido-item-footer ion-button {
+  --background: linear-gradient(135deg, #0EA5E9, #38BDF8);
+  --color: #ffffff;
+  --border-radius: 12px;
+  font-weight: 600;
+  text-transform: none;
+}
+
+.pedido-item-footer ion-button:hover {
+  --background: linear-gradient(135deg, #0284C7, #0EA5E9);
+}
+
+/* Estilos para el modal de detalles */
+.pedido-details {
+  color: #1e293b;
+}
+
+.detail-section {
+  margin-bottom: 24px;
+}
+
+.detail-section h3 {
+  color: #0EA5E9;
+  font-size: 1.2rem;
+  font-weight: 700;
+  margin-bottom: 12px;
+}
+
+.item-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.item-info {
+  flex: 1;
+}
+
+.item-info strong {
+  color: #0EA5E9;
+  font-size: 1rem;
+}
+
+.item-info p {
+  margin: 4px 0;
+  font-size: 0.9rem;
+  color: #64748B;
+}
+
+/* Responsive para sidebar */
+@media (max-width: 768px) {
+  .sidebar-pedidos {
+    width: 90vw;
+  }
+
+  .pedido-item {
+    padding: 12px;
+  }
+
+  .pedido-item-header strong {
+    font-size: 1rem;
+  }
+
+  .pedido-fecha {
+    font-size: 0.8rem;
+  }
+
+  .pedido-info-row {
+    font-size: 0.85rem;
+  }
+
+  .pedido-total {
+    font-size: 1rem;
   }
 }
