@@ -420,7 +420,7 @@ export default function Login() {
               onClick={handleGoogleLogin}
               style={{
                 '--border-color': 'rgba(255, 255, 255, 0.3)',
-                '--color': 'white',
+                '--color': '#4285F4',
                 height: '50px',
                 fontSize: '1rem',
                 fontWeight: '600'
