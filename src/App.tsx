@@ -10,7 +10,7 @@ import AdminDashboard from './pages/AdminDashboard';
 import VendedorRepartidor from './pages/vendedor';
 import HistorialPedidos from './pages/HistorialPedidos';
 
-// Componente de ruta protegida
+// Componente de ruta protegida mejorado
 const ProtectedRoute: React.FC<{
   children: React.ReactNode;
   allowedUserTypes?: string[];
@@ -25,9 +25,20 @@ const ProtectedRoute: React.FC<{
     return <Redirect to={redirectTo} />;
   }
 
-  // Verificar tipo de usuario permitido
+  // Si hay restricción de roles y el usuario no está permitido
   if (allowedUserTypes.length > 0 && !allowedUserTypes.includes(userType)) {
-    return <Redirect to={redirectTo} />;
+    // Redirigir al dashboard correcto según su rol
+    let correctRoute = '/login';
+
+    if (userType === 'administrador') {
+      correctRoute = '/admin-dashboard';
+    } else if (userType === 'vendedor') {
+      correctRoute = '/vendedor-dashboard';
+    } else if (userType === 'cliente') {
+      correctRoute = '/home';
+    }
+
+    return <Redirect to={correctRoute} />;
   }
 
   // Si todo está bien, renderizar los hijos
@@ -77,12 +88,12 @@ const App: React.FC = () => (
           <Login />
         </Route>
         <Route exact path="/home">
-          <ProtectedRoute>
+          <ProtectedRoute allowedUserTypes={['cliente']}>
             <Home />
           </ProtectedRoute>
         </Route>
         <Route exact path="/historial-pedidos">
-          <ProtectedRoute allowedUserTypes={['cliente', 'Cliente']}>
+          <ProtectedRoute allowedUserTypes={['cliente']}>
             <HistorialPedidos />
           </ProtectedRoute>
         </Route>

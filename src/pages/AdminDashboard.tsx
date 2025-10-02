@@ -22,7 +22,7 @@ interface Usuario {
   id: number;
   username: string;
   email: string;
-  tipo: 'vendedor' | 'cliente';
+  tipo: 'vendedor' | 'cliente' | 'admin';
   fechaCreacion: string;
   estado: 'activo' | 'inactivo';
   ultimoLogin?: string;
@@ -156,6 +156,7 @@ const AdminInterface: React.FC = () => {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [usuarios, setUsuarios] = useState<Usuario[]>(usuariosIniciales);
+  const [usuariosSeleccionados, setUsuariosSeleccionados] = useState<number[]>([]);
   const [productos, setProductos] = useState<Producto[]>([]);
   const [pedidos, setPedidos] = useState<Pedido[]>([]);
   const [isLoadingData, setIsLoadingData] = useState(true);
@@ -165,7 +166,7 @@ const AdminInterface: React.FC = () => {
     username: '',
     email: '',
     password: '',
-    tipo: 'vendedor' as 'vendedor' | 'cliente'
+    tipo: 'vendedor' as 'vendedor' | 'cliente' | 'admin'
   });
   
   const [nuevoProducto, setNuevoProducto] = useState({
@@ -245,7 +246,8 @@ const AdminInterface: React.FC = () => {
           id: u.id,
           username: u.nombre,
           email: u.email,
-          tipo: u.tipo_usuario === 'Vendedor' ? 'vendedor' : 'cliente',
+          tipo: u.tipo_usuario === 'Admin' ? 'admin' :
+                u.tipo_usuario === 'Vendedor' ? 'vendedor' : 'cliente',
           fechaCreacion: u.fecha_registro?.split('T')[0] || '',
           estado: u.activo ? 'activo' : 'inactivo',
           ultimoLogin: u.ultimo_login
@@ -319,7 +321,79 @@ const AdminInterface: React.FC = () => {
       notificationService.disconnect();
     };
   }, [history]);
-  
+
+  // UseEffect para habilitar scroll horizontal en tablas móviles
+  useEffect(() => {
+    const enableTableScroll = () => {
+      const isMobile = window.innerWidth <= 768;
+      const viewportWidth = window.innerWidth;
+
+      const tableContainers = document.querySelectorAll('.admin-table-container');
+      const tables = document.querySelectorAll('.admin-table');
+
+      console.log('📱 Viewport width:', viewportWidth, 'Mobile:', isMobile);
+
+      tableContainers.forEach((container, index) => {
+        const element = container as HTMLElement;
+        const table = tables[index] as HTMLElement;
+
+        if (isMobile) {
+          // En móviles, forzar scroll
+          element.style.overflowX = 'scroll';
+          element.style.width = '100vw';
+          element.style.maxWidth = '100vw';
+          (element.style as any).webkitOverflowScrolling = 'touch';
+
+          // Asegurar que la tabla sea más ancha que el viewport
+          if (table) {
+            const minTableWidth = Math.max(viewportWidth * 1.5, 800);
+            table.style.minWidth = `${minTableWidth}px`;
+            console.log(`✅ Tabla ${index + 1}: min-width = ${minTableWidth}px`);
+          }
+
+          // Prevenir que otros elementos bloqueen el scroll
+          element.addEventListener('touchstart', (e) => {
+            e.stopPropagation();
+          }, { passive: true });
+
+          element.addEventListener('touchmove', (e) => {
+            e.stopPropagation();
+          }, { passive: true });
+
+          // Log detallado
+          setTimeout(() => {
+            console.log(`📊 Tabla ${index + 1}:`, {
+              containerWidth: element.clientWidth,
+              tableWidth: table?.scrollWidth || 0,
+              scrollWidth: element.scrollWidth,
+              canScroll: element.scrollWidth > element.clientWidth,
+              scrollLeft: element.scrollLeft,
+              maxScrollLeft: element.scrollWidth - element.clientWidth
+            });
+          }, 200);
+        }
+      });
+    };
+
+    // Ejecutar inmediatamente
+    enableTableScroll();
+
+    // Ejecutar después de renders
+    const timer1 = setTimeout(enableTableScroll, 100);
+    const timer2 = setTimeout(enableTableScroll, 500);
+
+    // Escuchar cambios de orientación/resize
+    window.addEventListener('resize', enableTableScroll);
+    window.addEventListener('orientationchange', enableTableScroll);
+
+    return () => {
+      clearTimeout(timer1);
+      clearTimeout(timer2);
+      window.removeEventListener('resize', enableTableScroll);
+      window.removeEventListener('orientationchange', enableTableScroll);
+    };
+  }, [activeSection, productos, usuarios, pedidos]);
+
   // Función para mostrar mensajes
   const showMessage = (message: string, color: 'success' | 'danger' | 'warning' = 'success') => {
     setToastMessage(message);
@@ -376,11 +450,16 @@ const AdminInterface: React.FC = () => {
     setIsLoading(true);
 
     try {
+      // Mapear tipo de usuario al formato del backend
+      let tipoUsuario: 'Cliente' | 'Vendedor' | 'Admin' = 'Cliente';
+      if (nuevoUsuario.tipo === 'vendedor') tipoUsuario = 'Vendedor';
+      if (nuevoUsuario.tipo === 'admin') tipoUsuario = 'Admin';
+
       const response = await ApiService.register({
         nombre: nuevoUsuario.username,
         email: nuevoUsuario.email,
         password: nuevoUsuario.password,
-        tipo_usuario: nuevoUsuario.tipo === 'vendedor' ? 'Vendedor' : 'Cliente'
+        tipo_usuario: tipoUsuario
       });
 
       const newUser: Usuario = {
@@ -422,10 +501,15 @@ const AdminInterface: React.FC = () => {
     setIsLoading(true);
 
     try {
+      // Mapear tipo de usuario al formato del backend
+      let tipoUsuario = 'Cliente';
+      if (editingUser.tipo === 'vendedor') tipoUsuario = 'Vendedor';
+      if (editingUser.tipo === 'admin') tipoUsuario = 'Admin';
+
       const updateData: any = {
         nombre: editingUser.username,
         email: editingUser.email,
-        tipo_usuario: editingUser.tipo === 'vendedor' ? 'Vendedor' : 'Cliente',
+        tipo_usuario: tipoUsuario,
         activo: editingUser.estado === 'activo'
       };
 
@@ -454,28 +538,102 @@ const AdminInterface: React.FC = () => {
   };
 
   // Función para eliminar usuario
-  const eliminarUsuario = (id: number) => {
+  const eliminarUsuario = async (id: number) => {
     const usuario = usuarios.find(u => u.id === id);
     if (!usuario) return;
 
     setAlertConfig({
       isOpen: true,
       header: 'Confirmar eliminación',
-      message: `¿Estás seguro de eliminar al usuario "${usuario.username}"?`,
+      message: `¿Estás seguro de eliminar al usuario "${usuario.username}"? Esta acción no se puede deshacer.`,
       buttons: [
         { text: 'Cancelar', role: 'cancel' },
         {
           text: 'Eliminar',
-          handler: () => {
-            setUsuarios(usuarios.filter(u => u.id !== id));
-            showMessage(`Usuario ${usuario.username} eliminado`, 'success');
+          handler: async () => {
+            try {
+              setIsLoading(true);
+
+              // Llamar al API para eliminar
+              await ApiService.deleteUser(id);
+
+              // Actualizar el estado local
+              setUsuarios(usuarios.filter(u => u.id !== id));
+              showMessage(`Usuario ${usuario.username} eliminado exitosamente`, 'success');
+            } catch (error: any) {
+              console.error('Error eliminando usuario:', error);
+              showMessage(error.message || 'Error al eliminar usuario', 'danger');
+            } finally {
+              setIsLoading(false);
+            }
           }
         }
       ]
     });
     setShowAlert(true);
   };
-  
+
+  // Función para seleccionar/deseleccionar un usuario
+  const toggleSeleccionUsuario = (id: number) => {
+    setUsuariosSeleccionados(prev =>
+      prev.includes(id)
+        ? prev.filter(userId => userId !== id)
+        : [...prev, id]
+    );
+  };
+
+  // Función para seleccionar/deseleccionar todos los usuarios
+  const toggleSeleccionarTodos = () => {
+    if (usuariosSeleccionados.length === usuarios.length) {
+      setUsuariosSeleccionados([]);
+    } else {
+      setUsuariosSeleccionados(usuarios.map(u => u.id));
+    }
+  };
+
+  // Función para eliminar múltiples usuarios
+  const eliminarUsuariosSeleccionados = async () => {
+    if (usuariosSeleccionados.length === 0) {
+      showMessage('No hay usuarios seleccionados', 'warning');
+      return;
+    }
+
+    setAlertConfig({
+      isOpen: true,
+      header: 'Confirmar eliminación múltiple',
+      message: `¿Estás seguro de eliminar ${usuariosSeleccionados.length} usuario(s)? Esta acción no se puede deshacer.`,
+      buttons: [
+        { text: 'Cancelar', role: 'cancel' },
+        {
+          text: 'Eliminar',
+          handler: async () => {
+            try {
+              setIsLoading(true);
+
+              // Eliminar todos los usuarios en paralelo
+              await Promise.all(
+                usuariosSeleccionados.map(id => ApiService.deleteUser(id))
+              );
+
+              // Actualizar el estado local
+              setUsuarios(usuarios.filter(u => !usuariosSeleccionados.includes(u.id)));
+              showMessage(`${usuariosSeleccionados.length} usuario(s) eliminado(s) exitosamente`, 'success');
+
+              // Limpiar selección
+              setUsuariosSeleccionados([]);
+            } catch (error: any) {
+              console.error('Error eliminando usuarios:', error);
+              showMessage(error.message || 'Error al eliminar usuarios', 'danger');
+            } finally {
+              setIsLoading(false);
+            }
+          }
+        }
+      ]
+    });
+    setShowAlert(true);
+  };
+
   // Función para crear producto
   const crearProducto = async () => {
     if (!nuevoProducto.nombre || !nuevoProducto.precio) {
@@ -809,10 +967,11 @@ const AdminInterface: React.FC = () => {
               <select
                 className="admin-form-select"
                 value={nuevoUsuario.tipo}
-                onChange={(e) => setNuevoUsuario({...nuevoUsuario, tipo: e.target.value as 'vendedor' | 'cliente'})}
+                onChange={(e) => setNuevoUsuario({...nuevoUsuario, tipo: e.target.value as 'vendedor' | 'cliente' | 'admin'})}
               >
-                <option value="vendedor">Vendedor</option>
                 <option value="cliente">Cliente</option>
+                <option value="vendedor">Vendedor</option>
+                <option value="admin">Administrador</option>
               </select>
             </div>
           </div>
@@ -844,12 +1003,30 @@ const AdminInterface: React.FC = () => {
             <IonIcon icon={peopleOutline} />
             Lista de Usuarios ({usuarios.length})
           </h2>
+          {usuariosSeleccionados.length > 0 && (
+            <button
+              className="admin-btn admin-btn-danger"
+              onClick={eliminarUsuariosSeleccionados}
+              style={{ marginLeft: 'auto' }}
+            >
+              <IonIcon icon={trashOutline} />
+              Eliminar {usuariosSeleccionados.length} usuario(s)
+            </button>
+          )}
         </div>
         
         <div className="admin-table-container">
           <table className="admin-table">
             <thead>
               <tr>
+                <th style={{ width: '40px' }}>
+                  <input
+                    type="checkbox"
+                    checked={usuariosSeleccionados.length === usuarios.length && usuarios.length > 0}
+                    onChange={toggleSeleccionarTodos}
+                    style={{ cursor: 'pointer' }}
+                  />
+                </th>
                 <th>ID</th>
                 <th>Usuario</th>
                 <th>Email</th>
@@ -863,12 +1040,24 @@ const AdminInterface: React.FC = () => {
             <tbody>
               {usuarios.map(usuario => (
                 <tr key={usuario.id}>
+                  <td>
+                    <input
+                      type="checkbox"
+                      checked={usuariosSeleccionados.includes(usuario.id)}
+                      onChange={() => toggleSeleccionUsuario(usuario.id)}
+                      style={{ cursor: 'pointer' }}
+                    />
+                  </td>
                   <td>#{usuario.id}</td>
                   <td style={{ fontWeight: '600' }}>{usuario.username}</td>
                   <td>{usuario.email}</td>
                   <td>
-                    <span className={`admin-badge ${usuario.tipo === 'vendedor' ? 'admin-badge-primary' : 'admin-badge-success'}`}>
-                      {usuario.tipo}
+                    <span className={`admin-badge ${
+                      usuario.tipo === 'admin' ? 'admin-badge-danger' :
+                      usuario.tipo === 'vendedor' ? 'admin-badge-primary' :
+                      'admin-badge-success'
+                    }`}>
+                      {usuario.tipo === 'admin' ? 'Administrador' : usuario.tipo}
                     </span>
                   </td>
                   <td>
@@ -880,10 +1069,9 @@ const AdminInterface: React.FC = () => {
                   <td>{usuario.fechaCreacion}</td>
                   <td>{usuario.ultimoLogin || 'Nunca'}</td>
                   <td>
-                    <div style={{ display: 'flex', gap: '8px' }}>
+                    <div className="admin-table-actions" style={{ display: 'flex', gap: '8px' }}>
                       <button
                         className="admin-btn admin-btn-outline"
-                        style={{ padding: '8px 12px', fontSize: '0.8rem' }}
                         onClick={() => openEditUserModal(usuario)}
                         title="Editar usuario"
                       >
@@ -891,7 +1079,6 @@ const AdminInterface: React.FC = () => {
                       </button>
                       <button
                         className="admin-btn admin-btn-danger"
-                        style={{ padding: '8px 12px', fontSize: '0.8rem' }}
                         onClick={() => eliminarUsuario(usuario.id)}
                         title="Eliminar usuario"
                       >
@@ -1097,17 +1284,15 @@ const AdminInterface: React.FC = () => {
                     </span>
                   </td>
                   <td>
-                    <div style={{ display: 'flex', gap: '8px' }}>
+                    <div className="admin-table-actions" style={{ display: 'flex', gap: '8px' }}>
                       <button
                         className={`admin-btn ${producto.activo ? 'admin-btn-outline' : 'admin-btn-success'}`}
-                        style={{ padding: '8px 12px', fontSize: '0.8rem' }}
                         onClick={() => toggleProductoEstado(producto.id)}
                       >
                         {producto.activo ? 'Desactivar' : 'Activar'}
                       </button>
                       <button
                         className="admin-btn admin-btn-outline"
-                        style={{ padding: '8px 12px', fontSize: '0.8rem' }}
                         onClick={() => openEditModal(producto)}
                         title="Editar producto"
                       >
@@ -1115,7 +1300,6 @@ const AdminInterface: React.FC = () => {
                       </button>
                       <button
                         className="admin-btn admin-btn-danger"
-                        style={{ padding: '8px 12px', fontSize: '0.8rem' }}
                         onClick={() => {
                           setAlertConfig({
                             isOpen: true,
@@ -1273,7 +1457,6 @@ const AdminInterface: React.FC = () => {
                       <td>
                         <button
                           className="admin-btn admin-btn-primary"
-                          style={{ padding: '8px 16px', fontSize: '0.85rem' }}
                           onClick={() => asignarPedidoAVendedor(pedido.id)}
                         >
                           <IonIcon icon={personCircleOutline} />
@@ -1382,6 +1565,8 @@ const AdminInterface: React.FC = () => {
                     <th>ID</th>
                     <th>Cliente</th>
                     <th>Vendedor</th>
+                    <th>Dirección de Entrega</th>
+                    <th>Teléfono</th>
                     <th>Total</th>
                     <th>Pago</th>
                     <th>Fecha Pedido</th>
@@ -1393,6 +1578,8 @@ const AdminInterface: React.FC = () => {
                       <td>#{pedido.id}</td>
                       <td>{pedido.cliente_nombre || 'N/A'}</td>
                       <td>{pedido.vendedor_nombre || 'Sin asignar'}</td>
+                      <td style={{ maxWidth: '200px', fontSize: '0.9rem' }}>{pedido.direccion_entrega || 'N/A'}</td>
+                      <td>{pedido.telefono_contacto || 'N/A'}</td>
                       <td style={{ fontWeight: '700', color: '#10B981' }}>${Number(pedido.total || 0).toFixed(2)}</td>
                       <td>
                         {pedido.metodo_pago === 'transferencia' ? (
@@ -2096,10 +2283,11 @@ const AdminInterface: React.FC = () => {
                     <select
                       className="admin-form-select"
                       value={editingUser.tipo}
-                      onChange={(e) => setEditingUser({...editingUser, tipo: e.target.value as 'vendedor' | 'cliente'})}
+                      onChange={(e) => setEditingUser({...editingUser, tipo: e.target.value as 'vendedor' | 'cliente' | 'admin'})}
                     >
-                      <option value="vendedor">Vendedor</option>
                       <option value="cliente">Cliente</option>
+                      <option value="vendedor">Vendedor</option>
+                      <option value="admin">Administrador</option>
                     </select>
                   </div>
 

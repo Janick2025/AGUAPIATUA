@@ -44,7 +44,14 @@ class Database {
 
   async createUser(userData) {
     const sql = 'INSERT INTO users (nombre, email, password, tipo_usuario, telefono, direccion) VALUES (?, ?, ?, ?, ?, ?)';
-    const params = [userData.nombre, userData.email, userData.password, userData.tipo_usuario, userData.telefono, userData.direccion];
+    const params = [
+      userData.nombre,
+      userData.email,
+      userData.password,
+      userData.tipo_usuario,
+      userData.telefono || null,
+      userData.direccion || null
+    ];
     const result = await this.query(sql, params);
     return result.insertId;
   }

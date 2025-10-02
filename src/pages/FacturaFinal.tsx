@@ -46,6 +46,7 @@ const FacturaFinal: React.FC<FacturaFinalProps> = (props) => {
   
   // Estados principales
   const [address, setAddress] = useState(props.address || '');
+  const [telefono, setTelefono] = useState('');
   const [payment, setPayment] = useState(props.payment || '');
   const [comprobante, setComprobante] = useState<File | null>(null);
   const [cart] = useState<CartItem[]>(props.cart || []);
@@ -57,9 +58,16 @@ const FacturaFinal: React.FC<FacturaFinalProps> = (props) => {
   const [toastMessage, setToastMessage] = useState('');
   const [showContent, setShowContent] = useState(false);
   
-  // Efecto de entrada
+  // Efecto de entrada y cargar teléfono
   useEffect(() => {
     const timer = setTimeout(() => setShowContent(true), 300);
+
+    // Cargar teléfono del usuario desde localStorage
+    const userData = JSON.parse(localStorage.getItem('aguapiatua_user') || '{}');
+    if (userData.telefono) {
+      setTelefono(userData.telefono);
+    }
+
     return () => clearTimeout(timer);
   }, []);
 
@@ -95,6 +103,12 @@ const FacturaFinal: React.FC<FacturaFinalProps> = (props) => {
       return false;
     }
 
+    if (!telefono.trim()) {
+      setToastMessage('Por favor ingresa un teléfono de contacto');
+      setShowToast(true);
+      return false;
+    }
+
     if (!payment) {
       setToastMessage('Por favor selecciona un método de pago');
       setShowToast(true);
@@ -123,10 +137,6 @@ const FacturaFinal: React.FC<FacturaFinalProps> = (props) => {
     setIsLoading(true);
 
     try {
-      // Obtener información del usuario
-      const userData = JSON.parse(localStorage.getItem('aguapiatua_user') || '{}');
-      const telefono = userData.telefono || '';
-
       // Preparar items del pedido
       const items = cart.map(item => ({
         product_id: item.id,
@@ -280,7 +290,7 @@ const FacturaFinal: React.FC<FacturaFinalProps> = (props) => {
               <IonIcon icon={homeOutline} className="title-icon" />
               Dirección de Entrega
             </h2>
-            
+
             <div className="input-group">
               <input
                 type="text"
@@ -292,6 +302,20 @@ const FacturaFinal: React.FC<FacturaFinalProps> = (props) => {
               />
               <span className="input-helper">
                 Incluye referencias y número de casa/departamento
+              </span>
+            </div>
+
+            <div className="input-group" style={{ marginTop: '16px' }}>
+              <input
+                type="tel"
+                className="form-input"
+                placeholder="Teléfono de contacto para entrega"
+                value={telefono}
+                onChange={(e) => setTelefono(e.target.value)}
+                required
+              />
+              <span className="input-helper">
+                Ej: +593 99 123 4567 o 0991234567
               </span>
             </div>
           </div>
@@ -424,7 +448,7 @@ const FacturaFinal: React.FC<FacturaFinalProps> = (props) => {
               expand="block"
               className="btn-primary"
               onClick={handleConfirmarPedido}
-              disabled={!address || !payment || (payment === 'transferencia' && !comprobante) || isLoading}
+              disabled={!address || !telefono || !payment || (payment === 'transferencia' && !comprobante) || isLoading}
             >
               {isLoading ? (
                 <>

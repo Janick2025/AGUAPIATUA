@@ -149,7 +149,9 @@ export default function VendedorRepartidor() {
                  o.estado === 'Entregado' ? 'entregado' :
                  o.estado === 'Cancelado' ? 'cancelado' : 'pendiente' as EstadoEntrega,
           prioridad: 'media' as 'alta' | 'media' | 'baja',
-          notas: o.notas
+          notas: o.notas,
+          metodo_pago: o.metodo_pago,
+          comprobante_pago: o.comprobante_pago
         }));
 
         setPedidos(mappedPedidos);

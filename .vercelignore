@@ -1,0 +1,12 @@
+node_modules
+backend
+.git
+.gitignore
+*.log
+.env
+.env.local
+cypress
+android
+ios
+capacitor.config.ts
+ngrok-config.yml

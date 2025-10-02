@@ -17,7 +17,16 @@
       "Bash(pgrep:*)",
       "Bash(tasklist)",
       "Bash(taskkill:*)",
-      "Bash(git log:*)"
+      "Bash(git log:*)",
+      "Bash(git push:*)",
+      "Bash(git stash:*)",
+      "Bash(ngrok version)",
+      "Bash(ngrok:*)",
+      "Bash(npm run build:*)",
+      "Bash(start /B ngrok http 3001)",
+      "Bash(start /B ngrok http 5173)",
+      "Bash(powershell:*)",
+      "Bash(python:*)"
     ],
     "deny": [],
     "ask": []

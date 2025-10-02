@@ -1,6 +1,7 @@
 // Servicio para comunicación con la API de Agua Piatua
 class ApiService {
-  private baseURL: string = 'http://localhost:3001/api';
+  // URL del backend desplegado en ngrok (usar esta URL tanto en desarrollo como en producción)
+  private baseURL: string = 'https://facc9495a85e.ngrok-free.app/api';
   private token: string | null = null;
 
   constructor() {
@@ -353,6 +354,15 @@ class ApiService {
     }>(`/users/${id}/status`, {
       method: 'PATCH',
       body: JSON.stringify({ activo }),
+    });
+  }
+
+  async deleteUser(id: number) {
+    return this.request<{
+      message: string;
+      userId: number;
+    }>(`/users/${id}`, {
+      method: 'DELETE',
     });
   }
 

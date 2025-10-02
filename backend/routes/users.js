@@ -161,4 +161,39 @@ router.patch('/:id/status', authenticate, authorize('Admin'), async (req, res) =
   }
 });
 
+// DELETE /api/users/:id - Eliminar usuario (Solo Admin)
+router.delete('/:id', authenticate, authorize('Admin'), async (req, res) => {
+  try {
+    const userId = parseInt(req.params.id);
+
+    if (isNaN(userId)) {
+      return res.status(400).json({ error: 'ID de usuario inválido' });
+    }
+
+    // Verificar que el usuario existe
+    const existingUser = await db.getUserById(userId);
+    if (!existingUser) {
+      return res.status(404).json({ error: 'Usuario no encontrado' });
+    }
+
+    // Prevenir que se elimine a sí mismo
+    if (userId === req.user.id) {
+      return res.status(403).json({ error: 'No puedes eliminar tu propio usuario' });
+    }
+
+    // Eliminar usuario
+    const sql = 'DELETE FROM users WHERE id = ?';
+    await db.query(sql, [userId]);
+
+    res.json({
+      message: 'Usuario eliminado exitosamente',
+      userId: userId
+    });
+
+  } catch (error) {
+    console.error('Error eliminando usuario:', error);
+    res.status(500).json({ error: 'Error interno del servidor' });
+  }
+});
+
 module.exports = router;

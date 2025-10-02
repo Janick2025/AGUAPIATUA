@@ -180,6 +180,34 @@
   --color: #ffffff !important;
 }
 
+/* Botones de redes sociales */
+.social-btn {
+  --color: #ffffff;
+  font-size: 1.2rem;
+  transition: transform 0.3s ease, opacity 0.3s ease;
+}
+
+.social-btn:hover {
+  transform: scale(1.15);
+  opacity: 0.8;
+}
+
+.social-btn ion-icon {
+  font-size: 1.3rem;
+}
+
+/* Responsive para redes sociales */
+
+@media (min-width: 769px) and (max-width: 1024px) {
+  .social-btn {
+    font-size: 1rem;
+  }
+
+  .social-btn ion-icon {
+    font-size: 1.1rem;
+  }
+}
+
 /* Tarjetas de producto - DEBE verse el efecto */
 .producto-card.ecommerce {
   background: rgba(255, 255, 255, 0.95) !important;
@@ -521,7 +549,10 @@ ion-menu ion-item:hover {
 .sidebar-body {
   flex: 1;
   overflow-y: auto;
+  overflow-x: hidden;
   padding: 16px;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 /* Estados de loading y empty */
@@ -552,6 +583,7 @@ ion-menu ion-item:hover {
   display: flex;
   flex-direction: column;
   gap: 16px;
+  width: 100%;
 }
 
 /* Item de pedido individual */
@@ -562,6 +594,8 @@ ion-menu ion-item:hover {
   border-radius: 16px;
   padding: 16px;
   transition: all 0.3s ease;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .pedido-item:hover {
@@ -578,12 +612,25 @@ ion-menu ion-item:hover {
   margin-bottom: 12px;
   padding-bottom: 12px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  width: 100%;
+  box-sizing: border-box;
+  gap: 12px;
+}
+
+.pedido-item-header > div:first-child {
+  flex: 1 1 auto;
+  min-width: 0;
 }
 
 .pedido-item-header strong {
   color: #38BDF8;
   font-size: 1.1rem;
   font-weight: 700;
+  display: inline-block;
+  word-break: break-word;
+  overflow-wrap: break-word;
+  white-space: normal;
+  width: 100%;
 }
 
 .pedido-fecha {
@@ -593,10 +640,15 @@ ion-menu ion-item:hover {
   font-size: 0.85rem;
   color: rgba(255, 255, 255, 0.6);
   margin-top: 4px;
+  word-break: break-word;
+  overflow-wrap: break-word;
+  max-width: 100%;
+  flex-wrap: wrap;
 }
 
 .pedido-fecha ion-icon {
   font-size: 1rem;
+  flex-shrink: 0;
 }
 
 /* Badge de estado */
@@ -608,6 +660,8 @@ ion-menu ion-item:hover {
   display: flex;
   align-items: center;
   gap: 4px;
+  flex-shrink: 0;
+  white-space: nowrap;
 }
 
 .pedido-item-header ion-badge ion-icon {
@@ -617,15 +671,19 @@ ion-menu ion-item:hover {
 /* Body del item de pedido */
 .pedido-item-body {
   margin-bottom: 12px;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .pedido-info-row {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 8px;
   color: rgba(255, 255, 255, 0.8);
   font-size: 0.9rem;
   margin-bottom: 8px;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .pedido-info-row ion-icon {
@@ -636,9 +694,10 @@ ion-menu ion-item:hover {
 
 .pedido-info-row span {
   flex: 1;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  word-break: break-word;
+  overflow-wrap: break-word;
+  white-space: normal;
+  line-height: 1.4;
 }
 
 /* Footer del item de pedido */
@@ -649,33 +708,54 @@ ion-menu ion-item:hover {
   margin-top: 12px;
   padding-top: 12px;
   border-top: 1px solid rgba(255, 255, 255, 0.1);
+  width: 100%;
+  box-sizing: border-box;
+  gap: 12px;
 }
 
 .pedido-total {
   color: #38BDF8;
   font-size: 1.1rem;
   font-weight: 700;
+  flex: 1;
+  min-width: 0;
 }
 
-.pedido-item-footer ion-button {
+.pedido-total strong {
+  word-break: break-word;
+}
+
+.btn-ver-detalles {
   --background: linear-gradient(135deg, #0EA5E9, #38BDF8);
-  --color: #ffffff;
+  --color: #ffffff;     
   --border-radius: 12px;
+  --padding-start: 16px;
+  --padding-end: 16px;
   font-weight: 600;
   text-transform: none;
+  letter-spacing: 0.3px;
+  flex-shrink: 0;
+  white-space: nowrap;
 }
 
-.pedido-item-footer ion-button:hover {
+.btn-ver-detalles:hover {
   --background: linear-gradient(135deg, #0284C7, #0EA5E9);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(14, 165, 233, 0.4);
 }
 
 /* Estilos para el modal de detalles */
 .pedido-details {
   color: #1e293b;
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
+  padding: 0 4px;
 }
 
 .detail-section {
   margin-bottom: 24px;
+  width: 100%;
 }
 
 .detail-section h3 {
@@ -685,25 +765,219 @@ ion-menu ion-item:hover {
   margin-bottom: 12px;
 }
 
+.detail-section ion-list {
+  width: 100%;
+  padding: 0;
+}
+
+.detail-section ion-item {
+  --padding-start: 16px;
+  --padding-end: 16px;
+  --inner-padding-end: 0;
+  --min-height: auto;
+  --background: #f8fafc;
+  width: 100% !important;
+  margin-bottom: 8px;
+  border-radius: 8px;
+}
+
+.detail-section ion-label {
+  width: 100% !important;
+  max-width: 100% !important;
+  margin: 0 !important;
+}
+
+.detail-section ion-label strong {
+  display: block;
+  word-break: break-word;
+  overflow-wrap: break-word;
+  white-space: normal;
+  width: 100%;
+  margin-bottom: 4px;
+  color: #334155;
+  font-weight: 600;
+}
+
+.detail-section ion-label p {
+  word-break: break-word;
+  overflow-wrap: break-word;
+  white-space: normal;
+  width: 100%;
+  max-width: 100%;
+  margin: 0;
+  color: #64748b;
+  line-height: 1.5;
+}
+
+.detail-section ion-card {
+  width: 100% !important;
+  margin: 0;
+  max-width: 100%;
+}
+
+.detail-section ion-card-content {
+  width: 100% !important;
+  padding: 16px;
+}
+
+.detail-section ion-card-content p {
+  word-break: break-word;
+  overflow-wrap: break-word;
+  white-space: normal;
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  width: 100%;
+  max-width: 100%;
+}
+
+.detail-section ion-card-content ion-icon {
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.item-card {
+  width: 100%;
+  margin-bottom: 8px;
+}
+
+.item-card ion-card-content {
+  padding: 12px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
 .item-row {
   display: flex;
   align-items: center;
   gap: 12px;
+  width: 100%;
+  overflow: hidden;
 }
 
 .item-info {
   flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
 }
 
 .item-info strong {
   color: #0EA5E9;
   font-size: 1rem;
+  word-break: break-word;
+  overflow-wrap: break-word;
+  white-space: normal;
 }
 
 .item-info p {
   margin: 4px 0;
   font-size: 0.9rem;
   color: #64748B;
+  word-break: break-word;
+  overflow-wrap: break-word;
+  white-space: normal;
+}
+
+.item-image {
+  flex-shrink: 0;
+  width: 60px;
+  height: 60px;
+  object-fit: contain;
+  border-radius: 4px;
+}
+
+.item-subtotal {
+  flex-shrink: 0;
+  white-space: nowrap;
+  text-align: right;
+  font-weight: bold;
+  color: #0EA5E9;
+  font-size: 1.1rem;
+}
+
+/* Responsive para modal de detalles */
+@media (max-width: 768px) {
+  .pedido-details {
+    padding: 0;
+  }
+
+  .detail-section {
+    margin-bottom: 16px;
+  }
+
+  .detail-section h3 {
+    font-size: 1.1rem;
+    margin-bottom: 10px;
+  }
+
+  .detail-section ion-card {
+    margin: 0 0 8px 0;
+    font-size: 0.9rem;
+  }
+
+  .detail-section ion-card-content {
+    padding: 12px;
+  }
+
+  .detail-section ion-card-content p {
+    font-size: 0.9rem;
+    gap: 6px;
+    margin-bottom: 8px;
+  }
+
+  .detail-section ion-card-content p:last-child {
+    margin-bottom: 0;
+  }
+
+  .detail-section ion-card-content strong {
+    font-size: 0.9rem;
+  }
+
+  .detail-section ion-card-content ion-icon {
+    font-size: 1rem;
+  }
+}
+
+@media (max-width: 640px) {
+  .detail-section h3 {
+    font-size: 1rem;
+  }
+
+  .detail-section ion-card-content {
+    padding: 10px;
+  }
+
+  .detail-section ion-card-content p {
+    font-size: 0.85rem;
+  }
+
+  .detail-section ion-card-content strong {
+    font-size: 0.85rem;
+  }
+
+  .item-row {
+    flex-direction: row;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .item-image {
+    width: 50px;
+    height: 50px;
+  }
+
+  .item-info strong {
+    font-size: 0.95rem;
+  }
+
+  .item-info p {
+    font-size: 0.85rem;
+  }
+
+  .item-subtotal {
+    font-size: 1rem;
+  }
 }
 
 /* Responsive para sidebar */
@@ -716,8 +990,33 @@ ion-menu ion-item:hover {
     padding: 12px;
   }
 
+  .pedido-item-header {
+    flex-wrap: wrap;
+  }
+
+  .pedido-item-header > div:first-child {
+    max-width: 100%;
+  }
+
   .pedido-item-header strong {
     font-size: 1rem;
+  }
+
+  .pedido-item-footer {
+    flex-direction: column;
+    gap: 12px;
+    align-items: stretch;
+  }
+
+  .pedido-total {
+    text-align: center;
+  }
+
+  .btn-ver-detalles {
+    width: 100%;
+    --padding-top: 10px;
+    --padding-bottom: 10px;
+    white-space: normal;
   }
 
   .pedido-fecha {

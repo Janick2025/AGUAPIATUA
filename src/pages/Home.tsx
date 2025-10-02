@@ -14,7 +14,8 @@ import {
 import {
   cartOutline, star, addOutline, removeOutline, closeOutline, trashOutline,
   logOutOutline, receiptOutline, menuOutline, timeOutline, checkmarkCircleOutline,
-  alertCircleOutline, closeCircleOutline, locationOutline, callOutline, refreshOutline
+  alertCircleOutline, closeCircleOutline, locationOutline, callOutline, refreshOutline,
+  logoFacebook, logoInstagram, logoWhatsapp, logoTiktok
 } from 'ionicons/icons';
 
 // Tipos TypeScript optimizados
@@ -110,10 +111,27 @@ export default function Home() {
 
   // Efectos de inicialización
   useEffect(() => {
-    // Verificar autenticación
+    // Verificar autenticación y tipo de usuario
     const isAuthenticated = localStorage.getItem('isAuthenticated');
+    const userType = localStorage.getItem('userType');
+
     if (!isAuthenticated) {
       history.push('/login');
+      return;
+    }
+
+    // Solo clientes pueden acceder a esta página
+    if (userType !== 'cliente') {
+      showMessage('Acceso denegado. Solo clientes.');
+      setTimeout(() => {
+        if (userType === 'administrador') {
+          history.push('/admin-dashboard');
+        } else if (userType === 'vendedor') {
+          history.push('/vendedor-dashboard');
+        } else {
+          history.push('/login');
+        }
+      }, 2000);
       return;
     }
 
@@ -452,22 +470,9 @@ export default function Home() {
                 <IonIcon icon={logOutOutline} />
               </IonButton>
             </IonButtons>
-
-            <IonTitle>
-              💧 Agua Piatua
-              {totalItems > 0 && (
-                <IonBadge color="primary" className="header-badge">
-                  🛒 {totalItems}
-                </IonBadge>
-              )}
-            </IonTitle>
-
+            <IonTitle>💧 Agua Piatua</IonTitle>
             <IonButtons slot="end">
-              <IonButton
-                fill="clear"
-                onClick={() => setShowCart(true)}
-                aria-label="Abrir carrito"
-              >
+              <IonButton fill="clear" onClick={() => setShowCart(true)} aria-label="Abrir carrito">
                 <IonIcon icon={cartOutline} />
                 {totalItems > 0 && (
                   <IonBadge className="header-badge">{totalItems}</IonBadge>
@@ -665,8 +670,8 @@ export default function Home() {
                         </div>
                         <IonButton
                           size="small"
-                          fill="outline"
                           onClick={() => handleViewDetails(pedido)}
+                          className="btn-ver-detalles"
                         >
                           Ver Detalles
                         </IonButton>
@@ -827,38 +832,21 @@ export default function Home() {
             <div className="pedido-details">
               <div className="detail-section">
                 <h3>Información del Pedido</h3>
-                <IonList>
-                  <IonItem>
-                    <IonLabel>
-                      <strong>Número de Pedido:</strong>
-                      <p>#{selectedPedido.id}</p>
-                    </IonLabel>
-                  </IonItem>
-                  <IonItem>
-                    <IonLabel>
-                      <strong>Estado:</strong>
-                      <p>
-                        <IonBadge color={getEstadoBadgeColor(selectedPedido.estado)}>
-                          {getEstadoText(selectedPedido.estado)}
-                        </IonBadge>
-                      </p>
-                    </IonLabel>
-                  </IonItem>
-                  <IonItem>
-                    <IonLabel>
-                      <strong>Fecha de Pedido:</strong>
-                      <p>{formatDate(selectedPedido.fecha_pedido)}</p>
-                    </IonLabel>
-                  </IonItem>
-                  {selectedPedido.fecha_entrega_real && (
-                    <IonItem>
-                      <IonLabel>
-                        <strong>Fecha de Entrega:</strong>
-                        <p>{formatDate(selectedPedido.fecha_entrega_real)}</p>
-                      </IonLabel>
-                    </IonItem>
-                  )}
-                </IonList>
+                <IonCard>
+                  <IonCardContent>
+                    <p><strong>Número de Pedido:</strong> #{selectedPedido.id}</p>
+                    <p>
+                      <strong>Estado:</strong>{' '}
+                      <IonBadge color={getEstadoBadgeColor(selectedPedido.estado)}>
+                        {getEstadoText(selectedPedido.estado)}
+                      </IonBadge>
+                    </p>
+                    <p><strong>Fecha de Pedido:</strong> {formatDate(selectedPedido.fecha_pedido)}</p>
+                    {selectedPedido.fecha_entrega_real && (
+                      <p><strong>Fecha de Entrega:</strong> {formatDate(selectedPedido.fecha_entrega_real)}</p>
+                    )}
+                  </IonCardContent>
+                </IonCard>
               </div>
 
               <div className="detail-section">
@@ -885,15 +873,14 @@ export default function Home() {
                               src={item.imagen}
                               alt={item.nombre}
                               className="item-image"
-                              style={{ width: '60px', height: '60px', objectFit: 'contain', marginRight: '12px' }}
                             />
                           )}
-                          <div className="item-info" style={{ flex: 1 }}>
+                          <div className="item-info">
                             <strong>{item.nombre || 'Producto'}</strong>
                             <p>Cantidad: {item.cantidad || 0}</p>
                             <p>Precio unitario: ${Number(item.precio_unitario || 0).toFixed(2)}</p>
                           </div>
-                          <div className="item-subtotal" style={{ fontWeight: 'bold' }}>
+                          <div className="item-subtotal">
                             ${Number(item.subtotal || 0).toFixed(2)}
                           </div>
                         </div>

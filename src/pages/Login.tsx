@@ -20,32 +20,26 @@ import './Login.css';
 
 // Definición de tipos de usuario con sus rutas correspondientes
 const USER_TYPES = [
-  { 
-    value: 'Cliente', 
-    label: 'Cliente', 
+  {
+    value: 'Cliente',
+    label: 'Cliente',
     icon: '👤',
     route: '/home',
-    description: 'Comprar productos',
-    email: 'cliente@example.com',
-    password: 'cliente123'
+    description: 'Comprar productos'
   },
-  { 
-    value: 'Admin', 
-    label: 'Admin', 
+  {
+    value: 'Admin',
+    label: 'Admin',
     icon: '⚙️',
     route: '/admin-dashboard',
-    description: 'Gestionar sistema',
-    email: 'admin@aguapiatua.com',
-    password: 'admin123'
+    description: 'Gestionar sistema'
   },
-  { 
-    value: 'Vendedor', 
-    label: 'Vendedor', 
+  {
+    value: 'Vendedor',
+    label: 'Vendedor',
     icon: '🛍️',
     route: '/vendedor-dashboard',
-    description: 'Gestionar ventas',
-    email: 'vendedor@aguapiatua.com',
-    password: 'vendedor123'
+    description: 'Gestionar ventas'
   }
 ];
 
@@ -54,9 +48,12 @@ export default function Login() {
   const location = useLocation();
 
   // Estados del formulario
+  const [isRegisterMode, setIsRegisterMode] = useState(false);
   const [userType, setUserType] = useState('Cliente');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [nombre, setNombre] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -199,14 +196,73 @@ export default function Login() {
     setIsLoading(false);
   };
 
-  // Auto-rellenar credenciales para demo
-  const autoFillCredentials = (selectedUserType: string) => {
-    const userTypeData = USER_TYPES.find(type => type.value === selectedUserType);
-    if (userTypeData) {
-      setEmail(userTypeData.email);
-      setPassword(userTypeData.password);
-      showMessage(`Credenciales auto-rellenadas para ${selectedUserType}`, 'success');
+  // Registro de nuevo usuario
+  const handleRegister = async () => {
+    if (!nombre.trim()) {
+      showMessage('Por favor ingresa tu nombre', 'warning');
+      return;
     }
+    if (!email.trim()) {
+      showMessage('Por favor ingresa tu email', 'warning');
+      return;
+    }
+    if (!password.trim()) {
+      showMessage('Por favor ingresa tu contraseña', 'warning');
+      return;
+    }
+    if (password !== confirmPassword) {
+      showMessage('Las contraseñas no coinciden', 'warning');
+      return;
+    }
+    if (password.length < 6) {
+      showMessage('La contraseña debe tener al menos 6 caracteres', 'warning');
+      return;
+    }
+
+    setIsLoading(true);
+
+    try {
+      const response = await ApiService.register({
+        nombre: nombre,
+        email: email,
+        password: password,
+        tipo_usuario: userType as 'Cliente' | 'Vendedor' | 'Admin'
+      });
+
+      // Guardar datos de sesión
+      localStorage.setItem('aguapiatua_user', JSON.stringify(response.user));
+      localStorage.setItem('isAuthenticated', 'true');
+      localStorage.setItem('userId', response.user.id.toString());
+      localStorage.setItem('username', response.user.nombre);
+
+      // Normalizar y guardar tipo de usuario
+      let normalizedUserType = 'cliente';
+      if (response.user.tipo_usuario === 'Admin') {
+        normalizedUserType = 'administrador';
+      } else if (response.user.tipo_usuario === 'Vendedor') {
+        normalizedUserType = 'vendedor';
+      }
+      localStorage.setItem('userType', normalizedUserType);
+
+      showMessage(`¡Registro exitoso! Bienvenido ${response.user.nombre}!`, 'success');
+
+      // Navegar según el tipo de usuario
+      setTimeout(() => {
+        if (response.user.tipo_usuario === 'Admin') {
+          history.push('/admin-dashboard');
+        } else if (response.user.tipo_usuario === 'Vendedor') {
+          history.push('/vendedor-dashboard');
+        } else {
+          history.push('/home');
+        }
+      }, 1000);
+
+    } catch (error: any) {
+      console.error('Error en registro:', error);
+      showMessage(error.message || 'Error al registrarse', 'danger');
+    }
+
+    setIsLoading(false);
   };
 
   // Login con Google
@@ -220,7 +276,7 @@ export default function Login() {
         const result = await GoogleAuth.signIn();
 
         // Enviar al backend para crear/buscar usuario
-        const response = await fetch('http://localhost:3001/api/auth/google/mobile', {
+        const response = await fetch('https://facc9495a85e.ngrok-free.app/api/auth/google/mobile', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -261,7 +317,7 @@ export default function Login() {
         }
       } else {
         // Login web (OAuth redirect)
-        window.location.href = 'http://localhost:3001/api/auth/google';
+        window.location.href = 'https://facc9495a85e.ngrok-free.app/api/auth/google';
       }
     } catch (error: any) {
       console.error('Error en login de Google:', error);
@@ -306,21 +362,24 @@ export default function Login() {
                   </div>
                 ))}
               </div>
-              
-              {/* Botón para auto-rellenar credenciales de demo */}
-              <IonButton 
-                fill="clear" 
-                size="small" 
-                onClick={() => autoFillCredentials(userType)}
-                style={{ 
-                  marginTop: '8px', 
-                  fontSize: '0.8rem',
-                  '--color': '#64748B'
-                }}
-              >
-                🎯 Auto-rellenar para demo
-              </IonButton>
             </div>
+
+            {/* Campo de nombre (solo en registro) */}
+            {isRegisterMode && (
+              <div className="input-group">
+                <IonInput
+                  label="Nombre completo"
+                  labelPlacement="floating"
+                  fill="outline"
+                  type="text"
+                  value={nombre}
+                  onIonChange={e => setNombre(e.detail.value!)}
+                  placeholder="Ingresa tu nombre completo"
+                  clearInput={true}
+                />
+                <IonIcon icon={personCircleOutline} className="input-icon" />
+              </div>
+            )}
 
             {/* Campo de email */}
             <div className="input-group">
@@ -349,35 +408,36 @@ export default function Login() {
                 placeholder="Ingresa tu contraseña"
                 clearInput={true}
               />
-              <IonIcon 
-                icon={showPassword ? eyeOffOutline : eyeOutline} 
+              <IonIcon
+                icon={showPassword ? eyeOffOutline : eyeOutline}
                 className="input-icon"
                 onClick={() => setShowPassword(!showPassword)}
                 style={{ cursor: 'pointer' }}
               />
             </div>
 
-            {/* Información de credenciales de demo */}
-            <div style={{ 
-              background: 'rgba(56,189,248,0.1)', 
-              padding: '12px', 
-              borderRadius: '8px', 
-              marginBottom: '16px',
-              fontSize: '0.85rem',
-              color: '#0EA5E9',
-              textAlign: 'center'
-            }}>
-              <strong>Credenciales de Demo (Base de Datos):</strong><br/>
-              Cliente: cliente@example.com / cliente123<br/>
-              Admin: admin@aguapiatua.com / admin123<br/>
-              Vendedor: vendedor@aguapiatua.com / vendedor123
-            </div>
+            {/* Campo de confirmación de contraseña (solo en registro) */}
+            {isRegisterMode && (
+              <div className="input-group">
+                <IonInput
+                  label="Confirmar contraseña"
+                  labelPlacement="floating"
+                  fill="outline"
+                  type={showPassword ? 'text' : 'password'}
+                  value={confirmPassword}
+                  onIonChange={e => setConfirmPassword(e.detail.value!)}
+                  placeholder="Confirma tu contraseña"
+                  clearInput={true}
+                />
+                <IonIcon icon={lockClosedOutline} className="input-icon" />
+              </div>
+            )}
 
-            {/* Botón de login */}
+            {/* Botón de login o registro */}
             <IonButton
               expand="block"
               className="login-button"
-              onClick={handleLogin}
+              onClick={isRegisterMode ? handleRegister : handleLogin}
               disabled={isLoading}
             >
               {isLoading ? (
@@ -391,15 +451,38 @@ export default function Login() {
                     animation: 'spin 1s linear infinite',
                     marginRight: '8px'
                   }}></div>
-                  Iniciando sesión...
+                  {isRegisterMode ? 'Registrando...' : 'Iniciando sesión...'}
                 </>
               ) : (
                 <>
                   <IonIcon icon={lockClosedOutline} slot="start" />
-                  ENTRAR COMO {userType.toUpperCase()}
+                  {isRegisterMode ? `REGISTRARSE COMO ${userType.toUpperCase()}` : `ENTRAR COMO ${userType.toUpperCase()}`}
                 </>
               )}
             </IonButton>
+
+            {/* Botón para cambiar entre login y registro */}
+            <div style={{ textAlign: 'center', marginTop: '16px' }}>
+              <button
+                onClick={() => {
+                  setIsRegisterMode(!isRegisterMode);
+                  setEmail('');
+                  setPassword('');
+                  setConfirmPassword('');
+                  setNombre('');
+                }}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  color: '#38BDF8',
+                  cursor: 'pointer',
+                  fontSize: '0.95rem',
+                  textDecoration: 'underline'
+                }}
+              >
+                {isRegisterMode ? '¿Ya tienes cuenta? Inicia sesión' : '¿No tienes cuenta? Regístrate'}
+              </button>
+            </div>
 
             {/* Divisor */}
             <div style={{
