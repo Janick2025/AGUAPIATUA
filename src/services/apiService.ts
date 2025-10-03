@@ -1,7 +1,7 @@
 // Servicio para comunicación con la API de Agua Piatua
 class ApiService {
   // URL del backend desplegado en ngrok (usar esta URL tanto en desarrollo como en producción)
-  private baseURL: string = 'https://facc9495a85e.ngrok-free.app/api';
+  private baseURL: string = 'https://aca5eb15b5ac.ngrok-free.app/api';
   private token: string | null = null;
 
   constructor() {
