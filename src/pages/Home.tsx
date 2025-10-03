@@ -88,6 +88,10 @@ export default function Home() {
   const [showModal, setShowModal] = useState(false);
   const [isLoadingDetails, setIsLoadingDetails] = useState(false);
 
+  // Estados para modal de detalle de producto
+  const [selectedProducto, setSelectedProducto] = useState<Producto | null>(null);
+  const [showProductModal, setShowProductModal] = useState(false);
+
   // Datos del usuario (desde localStorage)
   const userData = JSON.parse(localStorage.getItem('aguapiatua_user') || '{}');
   const userName = userData.nombre || 'Usuario';
@@ -415,6 +419,26 @@ export default function Home() {
     setSelectedPedido(null);
   };
 
+  // Funciones para el modal de detalle de producto
+  const handleViewProducto = (producto: Producto) => {
+    setSelectedProducto(producto);
+    setShowProductModal(true);
+  };
+
+  const handleCloseProductModal = () => {
+    setShowProductModal(false);
+    setSelectedProducto(null);
+  };
+
+  const addToCartFromModal = () => {
+    if (!selectedProducto) return;
+
+    const productIndex = productos.findIndex(p => p.id === selectedProducto.id);
+    if (productIndex !== -1) {
+      addToCart(productIndex);
+    }
+  };
+
   // Generar efectos decorativos
   const generateBubbles = () => {
     return Array.from({ length: 4 }, (_, index) => (
@@ -522,16 +546,20 @@ export default function Home() {
 
             {productos.map((producto, index) => (
               <IonCard key={producto.id} className="producto-card ecommerce">
-                <div className="img-wrap">
-                  <img 
-                    src={producto.imagen} 
-                    alt={producto.nombre} 
+                <div
+                  className="img-wrap"
+                  onClick={() => handleViewProducto(producto)}
+                  style={{ cursor: 'pointer' }}
+                >
+                  <img
+                    src={producto.imagen}
+                    alt={producto.nombre}
                     className="producto-imagen contain"
                     loading="lazy"
                   />
                 </div>
-                
-                <IonCardHeader>
+
+                <IonCardHeader onClick={() => handleViewProducto(producto)} style={{ cursor: 'pointer' }}>
                   <IonCardTitle className="producto-nombre-principal" title={producto.nombre}>
                     {producto.nombre}
                   </IonCardTitle>
@@ -910,6 +938,168 @@ export default function Home() {
                     </div>
                   </IonCardContent>
                 </IonCard>
+              </div>
+            </div>
+          ) : null}
+        </IonContent>
+      </IonModal>
+
+      {/* Modal de detalles del producto */}
+      <IonModal isOpen={showProductModal} onDidDismiss={handleCloseProductModal}>
+        <IonHeader>
+          <IonToolbar color="primary">
+            <IonTitle>Detalles del Producto</IonTitle>
+            <IonButtons slot="end">
+              <IonButton onClick={handleCloseProductModal}>
+                <IonIcon icon={closeOutline} />
+              </IonButton>
+            </IonButtons>
+          </IonToolbar>
+        </IonHeader>
+        <IonContent className="ion-padding">
+          {selectedProducto ? (
+            <div className="producto-details" style={{ paddingBottom: '80px' }}>
+              {/* Imagen del producto */}
+              <div style={{ textAlign: 'center', marginBottom: '24px' }}>
+                <img
+                  src={selectedProducto.imagen}
+                  alt={selectedProducto.nombre}
+                  style={{
+                    width: '100%',
+                    maxWidth: '400px',
+                    height: 'auto',
+                    borderRadius: '12px',
+                    boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
+                  }}
+                />
+              </div>
+
+              {/* Nombre y rating */}
+              <div style={{ marginBottom: '16px' }}>
+                <h2 style={{ margin: '0 0 8px 0', fontSize: '1.5rem' }}>
+                  {selectedProducto.nombre}
+                </h2>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  {renderStars(selectedProducto.rating)}
+                  <span style={{ color: '#64748B', fontSize: '0.9rem' }}>
+                    ({selectedProducto.reviews} reseñas)
+                  </span>
+                </div>
+              </div>
+
+              {/* Precio */}
+              <IonCard style={{ marginBottom: '16px' }}>
+                <IonCardContent>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                    <span style={{ fontSize: '2rem', fontWeight: 'bold', color: '#0EA5E9' }}>
+                      ${selectedProducto.precio.toFixed(2)}
+                    </span>
+                    {selectedProducto.precioAntes && (
+                      <>
+                        <span style={{
+                          textDecoration: 'line-through',
+                          color: '#94A3B8',
+                          fontSize: '1.2rem'
+                        }}>
+                          ${selectedProducto.precioAntes.toFixed(2)}
+                        </span>
+                        <IonBadge color="success">
+                          {Math.round(((selectedProducto.precioAntes - selectedProducto.precio) / selectedProducto.precioAntes) * 100)}% OFF
+                        </IonBadge>
+                      </>
+                    )}
+                  </div>
+                </IonCardContent>
+              </IonCard>
+
+              {/* Descripción */}
+              <div style={{ marginBottom: '16px' }}>
+                <h3 style={{ fontSize: '1.1rem', marginBottom: '8px' }}>Descripción</h3>
+                <IonCard>
+                  <IonCardContent>
+                    <p style={{ margin: 0, lineHeight: '1.6', color: '#475569' }}>
+                      {selectedProducto.descripcion || 'Agua purificada de alta calidad, ideal para mantenerte hidratado durante todo el día.'}
+                    </p>
+                  </IonCardContent>
+                </IonCard>
+              </div>
+
+              {/* Stock */}
+              {selectedProducto.stock !== undefined && (
+                <div style={{ marginBottom: '16px' }}>
+                  <h3 style={{ fontSize: '1.1rem', marginBottom: '8px' }}>Disponibilidad</h3>
+                  <IonCard>
+                    <IonCardContent>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        {selectedProducto.stock > 0 ? (
+                          <>
+                            <IonBadge color="success">En Stock</IonBadge>
+                            <span style={{ color: '#64748B' }}>
+                              {selectedProducto.stock} unidades disponibles
+                            </span>
+                          </>
+                        ) : (
+                          <IonBadge color="danger">Agotado</IonBadge>
+                        )}
+                      </div>
+                    </IonCardContent>
+                  </IonCard>
+                </div>
+              )}
+
+              {/* Categoría */}
+              {selectedProducto.categoria && (
+                <div style={{ marginBottom: '16px' }}>
+                  <h3 style={{ fontSize: '1.1rem', marginBottom: '8px' }}>Categoría</h3>
+                  <IonCard>
+                    <IonCardContent>
+                      <IonBadge color="primary">{selectedProducto.categoria}</IonBadge>
+                    </IonCardContent>
+                  </IonCard>
+                </div>
+              )}
+
+              {/* Cantidad en carrito */}
+              {getQty(selectedProducto.id) > 0 && (
+                <IonCard color="tertiary" style={{ marginBottom: '16px' }}>
+                  <IonCardContent>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <IonIcon icon={cartOutline} style={{ fontSize: '1.5rem' }} />
+                      <span style={{ fontWeight: 'bold' }}>
+                        Ya tienes {getQty(selectedProducto.id)} {getQty(selectedProducto.id) === 1 ? 'unidad' : 'unidades'} en el carrito
+                      </span>
+                    </div>
+                  </IonCardContent>
+                </IonCard>
+              )}
+
+              {/* Botón de agregar al carrito - fijo en la parte inferior */}
+              <div style={{
+                position: 'fixed',
+                bottom: 0,
+                left: 0,
+                right: 0,
+                padding: '16px',
+                background: 'white',
+                borderTop: '1px solid #E2E8F0',
+                zIndex: 1000
+              }}>
+                <IonButton
+                  expand="block"
+                  size="large"
+                  onClick={addToCartFromModal}
+                  disabled={selectedProducto.stock === 0}
+                  style={{
+                    '--background': '#0EA5E9',
+                    '--background-hover': '#0284C7',
+                    '--background-activated': '#0369A1',
+                    fontSize: '1.1rem',
+                    fontWeight: 'bold'
+                  }}
+                >
+                  <IonIcon icon={cartOutline} slot="start" />
+                  Agregar al Carrito
+                </IonButton>
               </div>
             </div>
           ) : null}
