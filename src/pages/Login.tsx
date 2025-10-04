@@ -276,7 +276,7 @@ export default function Login() {
         const result = await GoogleAuth.signIn();
 
         // Enviar al backend para crear/buscar usuario
-        const response = await fetch('https://aca5eb15b5ac.ngrok-free.app/api/auth/google/mobile', {
+        const response = await fetch('https://aguapiatua-production.up.railway.app/api/auth/google/mobile', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -317,7 +317,7 @@ export default function Login() {
         }
       } else {
         // Login web (OAuth redirect)
-        window.location.href = 'https://aca5eb15b5ac.ngrok-free.app/api/auth/google';
+        window.location.href = 'https://aguapiatua-production.up.railway.app/api/auth/google';
       }
     } catch (error: any) {
       console.error('Error en login de Google:', error);
