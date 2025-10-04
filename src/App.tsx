@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { Redirect, Route } from 'react-router-dom';
 import { IonApp, IonRouterOutlet, setupIonicReact } from '@ionic/react';
 import { IonReactRouter } from '@ionic/react-router';
@@ -9,6 +10,7 @@ import ComprobantePedido from './pages/ComprobantePedido';
 import AdminDashboard from './pages/AdminDashboard';
 import VendedorRepartidor from './pages/vendedor';
 import HistorialPedidos from './pages/HistorialPedidos';
+import pushNotificationService from './services/pushNotificationService';
 
 // Componente de ruta protegida mejorado
 const ProtectedRoute: React.FC<{
@@ -77,10 +79,29 @@ import './theme/variables.css';
 
 setupIonicReact();
 
-const App: React.FC = () => (
-  <IonApp>
-    <IonReactRouter>
-      <IonRouterOutlet>
+const App: React.FC = () => {
+  useEffect(() => {
+    // Inicializar notificaciones push cuando la app arranca
+    const initPush = async () => {
+      try {
+        await pushNotificationService.initialize();
+        console.log('✅ Push notifications inicializadas');
+      } catch (error) {
+        console.error('❌ Error inicializando push notifications:', error);
+      }
+    };
+
+    // Solo inicializar si el usuario está autenticado
+    const isAuthenticated = localStorage.getItem('isAuthenticated') === 'true';
+    if (isAuthenticated) {
+      initPush();
+    }
+  }, []);
+
+  return (
+    <IonApp>
+      <IonReactRouter>
+        <IonRouterOutlet>
         <Route exact path="/bienvenida">
           <Bienvenida />
         </Route>
@@ -138,6 +159,7 @@ const App: React.FC = () => (
       </IonRouterOutlet>
     </IonReactRouter>
   </IonApp>
-);
+  );
+};
 
 export default App;

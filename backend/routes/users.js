@@ -5,6 +5,31 @@ const { authenticate, authorize, authorizeOwnerOrAdmin } = require('../middlewar
 
 const router = express.Router();
 
+// POST /api/users/register-device - Registrar token FCM del dispositivo
+router.post('/register-device', authenticate, async (req, res) => {
+  try {
+    const { fcm_token } = req.body;
+
+    if (!fcm_token) {
+      return res.status(400).json({ error: 'Token FCM requerido' });
+    }
+
+    // Actualizar token FCM del usuario
+    const sql = 'UPDATE users SET fcm_token = ? WHERE id = ?';
+    await db.query(sql, [fcm_token, req.user.id]);
+
+    console.log(`✅ Token FCM registrado para usuario ${req.user.nombre}`);
+
+    res.json({
+      success: true,
+      message: 'Token FCM registrado correctamente'
+    });
+  } catch (error) {
+    console.error('Error registrando token FCM:', error);
+    res.status(500).json({ error: 'Error interno del servidor' });
+  }
+});
+
 // GET /api/users - Obtener lista de usuarios (Solo Admin)
 router.get('/', authenticate, authorize('Admin'), async (req, res) => {
   try {

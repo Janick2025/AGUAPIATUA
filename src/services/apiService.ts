@@ -437,6 +437,17 @@ class ApiService {
       method: 'DELETE'
     });
   }
+
+  // Método para registrar token FCM del dispositivo
+  async registerDeviceToken(fcm_token: string) {
+    return this.request<{
+      success: boolean;
+      message: string;
+    }>('/users/register-device', {
+      method: 'POST',
+      body: JSON.stringify({ fcm_token })
+    });
+  }
 }
 
 export default new ApiService();

@@ -6,12 +6,17 @@ const http = require('http');
 const { Server } = require('socket.io');
 require('dotenv').config();
 
+// Inicializar Firebase para notificaciones push
+const { initializeFirebase } = require('./services/pushNotificationService');
+initializeFirebase();
+
 const authRoutes = require('./routes/auth');
 const userRoutes = require('./routes/users');
 const productRoutes = require('./routes/products');
 const orderRoutes = require('./routes/orders');
 const deliveryRoutes = require('./routes/deliveries');
 const uploadRoutes = require('./routes/uploads');
+const adminRoutes = require('./routes/admin');
 
 const app = express();
 
@@ -133,6 +138,7 @@ app.use('/api/products', productRoutes);
 app.use('/api/orders', orderRoutes);
 app.use('/api/deliveries', deliveryRoutes);
 app.use('/api/uploads', uploadRoutes);
+app.use('/api/admin', adminRoutes);
 
 // Ruta de salud
 app.get('/api/health', (req, res) => {

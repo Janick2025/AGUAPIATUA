@@ -2,6 +2,9 @@ const express = require('express');
 const Joi = require('joi');
 const db = require('../config/database');
 const { authenticate, authorize, authorizeOwnerOrAdmin } = require('../middleware/auth');
+const { enviarNotificacionNuevoPedido, enviarNotificacionEstadoPedido } = require('../services/emailService');
+const { enviarWhatsAppNuevoPedido, enviarWhatsAppEstadoPedido, enviarWhatsAppConfirmacionPedido } = require('../services/whatsappService');
+const { notificarNuevoPedidoAdmins, notificarCambioEstadoCliente } = require('../services/pushNotificationService');
 
 const router = express.Router();
 
@@ -161,7 +164,51 @@ router.post('/', authenticate, async (req, res) => {
     const orderId = await db.createOrder(orderData);
     const newOrder = await db.getOrderDetails(orderId);
 
-    // Emitir notificación al admin
+    // Enviar notificación por email al administrador
+    enviarNotificacionNuevoPedido(newOrder, req.user)
+      .then(result => {
+        if (result.success) {
+          console.log(`✅ Email de nuevo pedido enviado (ID: ${orderId})`);
+        } else {
+          console.error(`❌ Error enviando email: ${result.error}`);
+        }
+      })
+      .catch(error => console.error('Error en notificación email:', error));
+
+    // Enviar notificación por WhatsApp al administrador
+    enviarWhatsAppNuevoPedido(newOrder, req.user)
+      .then(result => {
+        if (result.success) {
+          console.log(`✅ WhatsApp de nuevo pedido enviado al admin (ID: ${orderId})`);
+        } else {
+          console.error(`❌ Error enviando WhatsApp al admin: ${result.error}`);
+        }
+      })
+      .catch(error => console.error('Error en notificación WhatsApp admin:', error));
+
+    // Enviar confirmación por WhatsApp al cliente
+    enviarWhatsAppConfirmacionPedido(newOrder, req.user)
+      .then(result => {
+        if (result.success) {
+          console.log(`✅ WhatsApp de confirmación enviado al cliente (ID: ${orderId})`);
+        } else {
+          console.error(`❌ Error enviando WhatsApp al cliente: ${result.error}`);
+        }
+      })
+      .catch(error => console.error('Error en notificación WhatsApp cliente:', error));
+
+    // Enviar notificación push a los admins
+    notificarNuevoPedidoAdmins(newOrder, req.user)
+      .then(result => {
+        if (result.success) {
+          console.log(`✅ Notificaciones push enviadas a admins: ${result.successCount || 0} exitosas`);
+        } else {
+          console.error(`❌ Error enviando push a admins: ${result.error}`);
+        }
+      })
+      .catch(error => console.error('Error en notificación push admins:', error));
+
+    // Emitir notificación al admin (Socket.IO)
     if (req.io) {
       req.io.emit('new_order', {
         orderId,
@@ -171,7 +218,7 @@ router.post('/', authenticate, async (req, res) => {
         direccion: direccion_entrega,
         timestamp: new Date()
       });
-      console.log(`📢 Notificación de nuevo pedido enviada (ID: ${orderId})`);
+      console.log(`📢 Notificación Socket.IO de nuevo pedido enviada (ID: ${orderId})`);
     }
 
     res.status(201).json({
@@ -291,12 +338,48 @@ router.patch('/:id/status', authenticate, async (req, res) => {
     if (estado === 'Entregado') {
       const deliverySql = 'UPDATE deliveries SET estado = "Entregado", fecha_entrega = NOW() WHERE order_id = ?';
       await db.query(deliverySql, [orderId]);
-      
+
       const orderUpdateSql = 'UPDATE orders SET fecha_entrega_real = NOW() WHERE id = ?';
       await db.query(orderUpdateSql, [orderId]);
     }
 
     const updatedOrder = await db.getOrderDetails(orderId);
+
+    // Enviar notificación por email al cliente sobre el cambio de estado
+    const cliente = await db.getUserById(orderDetails.cliente_id);
+    if (cliente && cliente.email) {
+      enviarNotificacionEstadoPedido(updatedOrder, cliente, estado)
+        .then(result => {
+          if (result.success) {
+            console.log(`✅ Email de cambio de estado enviado al cliente (Pedido #${orderId})`);
+          } else {
+            console.error(`❌ Error enviando email al cliente: ${result.error}`);
+          }
+        })
+        .catch(error => console.error('Error en notificación de estado:', error));
+
+      // Enviar notificación por WhatsApp al cliente sobre el cambio de estado
+      enviarWhatsAppEstadoPedido(updatedOrder, cliente, estado)
+        .then(result => {
+          if (result.success) {
+            console.log(`✅ WhatsApp de cambio de estado enviado al cliente (Pedido #${orderId})`);
+          } else {
+            console.error(`❌ Error enviando WhatsApp al cliente: ${result.error}`);
+          }
+        })
+        .catch(error => console.error('Error en notificación WhatsApp de estado:', error));
+
+      // Enviar notificación push al cliente sobre el cambio de estado
+      notificarCambioEstadoCliente(updatedOrder, cliente, estado)
+        .then(result => {
+          if (result.success) {
+            console.log(`✅ Notificación push enviada al cliente (Pedido #${orderId})`);
+          } else {
+            console.error(`❌ Error enviando push al cliente: ${result.error}`);
+          }
+        })
+        .catch(error => console.error('Error en notificación push de estado:', error));
+    }
 
     // Emitir notificación al admin cuando el estado cambia
     if (req.io) {
