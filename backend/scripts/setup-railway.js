@@ -30,10 +30,19 @@ async function setupRailway() {
     const sqlContent = fs.readFileSync(sqlPath, 'utf8');
 
     // Dividir en statements individuales
-    const statements = sqlContent
+    // Primero eliminar comentarios de línea completa
+    const lines = sqlContent.split('\n');
+    const cleanedLines = lines.filter(line => {
+      const trimmed = line.trim();
+      return trimmed.length > 0 && !trimmed.startsWith('--');
+    });
+    const cleanedContent = cleanedLines.join('\n');
+
+    // Ahora dividir por punto y coma
+    const statements = cleanedContent
       .split(';')
       .map(stmt => stmt.trim())
-      .filter(stmt => stmt.length > 0 && !stmt.startsWith('--'));
+      .filter(stmt => stmt.length > 0);
 
     console.log(`📋 Ejecutando ${statements.length} statements SQL...`);
     console.log('');

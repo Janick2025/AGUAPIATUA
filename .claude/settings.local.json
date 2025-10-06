@@ -26,7 +26,11 @@
       "Bash(start /B ngrok http 3001)",
       "Bash(start /B ngrok http 5173)",
       "Bash(powershell:*)",
-      "Bash(python:*)"
+      "Bash(python:*)",
+      "Bash(git commit:*)",
+      "Bash(start /B node:*)",
+      "WebFetch(domain:railway.app)",
+      "Bash(git rm:*)"
     ],
     "deny": [],
     "ask": []

@@ -115,11 +115,11 @@ const FacturaFinal: React.FC<FacturaFinalProps> = (props) => {
       return false;
     }
 
-    if (payment === 'transferencia' && !comprobante) {
-      setToastMessage('Por favor sube el comprobante de transferencia');
-      setShowToast(true);
-      return false;
-    }
+    // if (payment === 'transferencia' && !comprobante) {
+    //   setToastMessage('Por favor sube el comprobante de transferencia');
+    //   setShowToast(true);
+    //   return false;
+    // }
 
     if (cart.length === 0) {
       setToastMessage('No hay productos en el carrito');
@@ -144,8 +144,10 @@ const FacturaFinal: React.FC<FacturaFinalProps> = (props) => {
         precio_unitario: Number(item.precio)
       }));
 
-      // Preparar notas con información del pago
-      let notas = `Método de pago: ${payment === 'efectivo' ? 'Efectivo' : 'Transferencia'}`;
+
+  // Preparar notas con información del pago
+  // let notas = `Método de pago: ${payment === 'efectivo' ? 'Efectivo' : 'Transferencia'}`;
+  let notas = `Método de pago: ${payment === 'efectivo' ? 'Efectivo' : ''}`;
 
       // Crear pedido en la API
       const orderData = {
@@ -160,20 +162,21 @@ const FacturaFinal: React.FC<FacturaFinalProps> = (props) => {
       const response = await ApiService.createOrder(orderData);
       console.log('Pedido creado:', response);
 
-      // Si hay comprobante de transferencia, subirlo a la API
+      // // Si hay comprobante de transferencia, subirlo a la API
+      // let comprobanteUrl = null;
+      // if (payment === 'transferencia' && comprobante) {
+      //   try {
+      //     console.log('Subiendo comprobante de pago...');
+      //     const uploadResponse = await ApiService.uploadComprobante(comprobante, response.order.id);
+      //     console.log('Comprobante subido:', uploadResponse);
+      //     comprobanteUrl = `${ApiService['baseURL']}${uploadResponse.file.path}`;
+      //     setToastMessage('Pedido y comprobante enviados correctamente');
+      //   } catch (uploadError: any) {
+      //     console.error('Error al subir comprobante:', uploadError);
+      //     setToastMessage('Pedido creado, pero hubo un error al subir el comprobante');
+      //   }
+      // }
       let comprobanteUrl = null;
-      if (payment === 'transferencia' && comprobante) {
-        try {
-          console.log('Subiendo comprobante de pago...');
-          const uploadResponse = await ApiService.uploadComprobante(comprobante, response.order.id);
-          console.log('Comprobante subido:', uploadResponse);
-          comprobanteUrl = `${ApiService['baseURL']}${uploadResponse.file.path}`;
-          setToastMessage('Pedido y comprobante enviados correctamente');
-        } catch (uploadError: any) {
-          console.error('Error al subir comprobante:', uploadError);
-          setToastMessage('Pedido creado, pero hubo un error al subir el comprobante');
-        }
-      }
 
       // Limpiar carrito
       localStorage.removeItem('cart');
@@ -345,89 +348,93 @@ const FacturaFinal: React.FC<FacturaFinalProps> = (props) => {
                 </div>
               </label>
 
-              <label className="payment-option">
-                <input
-                  type="radio"
-                  name="payment"
-                  value="transferencia"
-                  checked={payment === 'transferencia'}
-                  onChange={(e) => setPayment(e.target.value)}
-                />
-                <div className="option-content">
-                  <IonIcon icon={cardOutline} className="option-icon" />
-                  <div className="option-info">
-                    <span className="option-title">Transferencia</span>
-                    <span className="option-description">Pago por adelantado</span>
+              {false && (
+                <label className="payment-option">
+                  <input
+                    type="radio"
+                    name="payment"
+                    value="transferencia"
+                    checked={payment === 'transferencia'}
+                    onChange={(e) => setPayment(e.target.value)}
+                  />
+                  <div className="option-content">
+                    <IonIcon icon={cardOutline} className="option-icon" />
+                    <div className="option-info">
+                      <span className="option-title">Transferencia</span>
+                      <span className="option-description">Pago por adelantado</span>
+                    </div>
                   </div>
-                </div>
-              </label>
+                </label>
+              )}
             </div>
 
-            {/* Datos bancarios para transferencia */}
-            {payment === 'transferencia' && (
-              <div className="bank-info">
-                <h3 className="bank-title">Datos para Transferencia</h3>
-                <div className="bank-details">
-                  <div className="bank-item">
-                    <strong>Banco:</strong> Banco Pichincha
-                  </div>
-                  <div className="bank-item">
-                    <strong>Cuenta:</strong> 2100123456
-                  </div>
-                  <div className="bank-item">
-                    <strong>Titular:</strong> Agua Piatua S.A.
-                  </div>
-                  <div className="bank-item">
-                    <strong>Monto:</strong> ${Number(totalPrice).toFixed(2)}
+            {false && (
+              payment === 'transferencia' && (
+                <div className="bank-info">
+                  <h3 className="bank-title">Datos para Transferencia</h3>
+                  <div className="bank-details">
+                    <div className="bank-item">
+                      <strong>Banco:</strong> Banco Pichincha
+                    </div>
+                    <div className="bank-item">
+                      <strong>Cuenta:</strong> 2100123456
+                    </div>
+                    <div className="bank-item">
+                      <strong>Titular:</strong> Agua Piatua S.A.
+                    </div>
+                    <div className="bank-item">
+                      <strong>Monto:</strong> ${Number(totalPrice).toFixed(2)}
+                    </div>
                   </div>
                 </div>
-              </div>
+              )
             )}
 
-            {/* Upload de comprobante */}
-            {payment === 'transferencia' && (
-              <div className="upload-section">
-                <label className="upload-label">
-                  <IonIcon icon={cloudUploadOutline} />
-                  Subir Comprobante de Pago
-                </label>
-                
-                <div className="upload-area">
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={handleFileChange}
-                    className="upload-input"
-                    id="comprobante-upload"
-                  />
-                  <label htmlFor="comprobante-upload" className="upload-button">
-                    {comprobante ? (
-                      <div className="file-selected">
-                        <IonIcon icon={checkmarkCircleOutline} />
-                        <span>Archivo seleccionado: {comprobante.name}</span>
-                      </div>
-                    ) : (
-                      <div className="file-placeholder">
-                        <IonIcon icon={cloudUploadOutline} />
-                        <span>Haz clic para seleccionar imagen</span>
-                        <small>Máximo 5MB - JPG, PNG</small>
-                      </div>
-                    )}
+            {false && (
+              payment === 'transferencia' && (
+                <div className="upload-section">
+                  <label className="upload-label">
+                    <IonIcon icon={cloudUploadOutline} />
+                    Subir Comprobante de Pago
                   </label>
-                </div>
-
-                {/* Preview del comprobante */}
-                {comprobante && (
-                  <div className="comprobante-preview">
-                    <h4 className="preview-title">Vista Previa del Comprobante</h4>
-                    <img 
-                      src={URL.createObjectURL(comprobante)} 
-                      alt="Comprobante de pago" 
-                      className="preview-image"
+                  
+                  <div className="upload-area">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleFileChange}
+                      className="upload-input"
+                      id="comprobante-upload"
                     />
+                    <label htmlFor="comprobante-upload" className="upload-button">
+                      {comprobante ? (
+                        <div className="file-selected">
+                          <IonIcon icon={checkmarkCircleOutline} />
+                          <span>Archivo seleccionado: {comprobante!.name}</span>
+                        </div>
+                      ) : (
+                        <div className="file-placeholder">
+                          <IonIcon icon={cloudUploadOutline} />
+                          <span>Haz clic para seleccionar imagen</span>
+                          <small>Máximo 5MB - JPG, PNG</small>
+                        </div>
+                      )}
+                    </label>
                   </div>
-                )}
-              </div>
+
+                  {/* Preview del comprobante */}
+                  {comprobante && (
+                    <div className="comprobante-preview">
+                      <h4 className="preview-title">Vista Previa del Comprobante</h4>
+                      <img 
+                        src={URL.createObjectURL(comprobante!)} 
+                        alt="Comprobante de pago" 
+                        className="preview-image"
+                      />
+                    </div>
+                  )}
+                </div>
+              )
             )}
           </div>
 
@@ -448,7 +455,7 @@ const FacturaFinal: React.FC<FacturaFinalProps> = (props) => {
               expand="block"
               className="btn-primary"
               onClick={handleConfirmarPedido}
-              disabled={!address || !telefono || !payment || (payment === 'transferencia' && !comprobante) || isLoading}
+              disabled={!address || !telefono || !payment || isLoading}
             >
               {isLoading ? (
                 <>

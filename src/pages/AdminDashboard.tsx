@@ -139,7 +139,7 @@ const productosIniciales: Producto[] = [
     nombre: 'Agua Piatua 20L',
     precio: 2.50,
     descripcion: 'Garrafa de 20 litros para dispensador',
-    imagen: 'garrafa.jpg',
+    imagen: 'garrafon.png',
     categoria: 'garrafa',
     stock: 25,
     fechaCreacion: '2024-02-01',
