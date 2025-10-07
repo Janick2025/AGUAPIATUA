@@ -405,7 +405,21 @@ const AdminInterface: React.FC = () => {
   const reloadOrders = async () => {
     try {
       const ordersData = await ApiService.getOrders();
-      setPedidos(ordersData.map((o: any) => ({
+
+      // Obtener detalles completos de cada pedido (incluyendo productos)
+      const detailedOrders = await Promise.all(
+        ordersData.map(async (o: any) => {
+          try {
+            const orderDetails = await ApiService.getOrder(o.id);
+            return orderDetails;
+          } catch (error) {
+            console.error(`Error obteniendo detalles del pedido ${o.id}:`, error);
+            return o; // Devolver orden básica si falla
+          }
+        })
+      );
+
+      setPedidos(detailedOrders.map((o: any) => ({
         id: o.id,
         cliente_id: o.cliente_id,
         cliente_nombre: o.cliente_nombre || 'Cliente desconocido',
@@ -417,7 +431,8 @@ const AdminInterface: React.FC = () => {
         telefono_contacto: o.telefono_contacto || '',
         fecha_pedido: o.fecha_pedido || new Date().toISOString(),
         metodo_pago: o.metodo_pago || 'efectivo',
-        comprobante_pago: o.comprobante_pago || null
+        comprobante_pago: o.comprobante_pago || null,
+        items: o.items || []
       })));
     } catch (error) {
       console.error('Error recargando pedidos:', error);
@@ -1413,6 +1428,7 @@ const AdminInterface: React.FC = () => {
                     <th>Cliente</th>
                     <th>Teléfono</th>
                     <th>Dirección</th>
+                    <th>Productos</th>
                     <th>Total</th>
                     <th>Pago</th>
                     <th>Fecha</th>
@@ -1427,6 +1443,19 @@ const AdminInterface: React.FC = () => {
                       <td style={{ fontWeight: '600' }}>{pedido.cliente_nombre || 'N/A'}</td>
                       <td>{pedido.telefono_contacto || 'N/A'}</td>
                       <td>{pedido.direccion_entrega || 'N/A'}</td>
+                      <td>
+                        {pedido.items && pedido.items.length > 0 ? (
+                          <div style={{ fontSize: '0.85rem' }}>
+                            {pedido.items.map((item: any, idx: number) => (
+                              <div key={idx} style={{ marginBottom: '4px' }}>
+                                {item.cantidad}x {item.producto_nombre}
+                              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <span style={{ color: '#94A3B8' }}>Sin productos</span>
+                        )}
+                      </td>
                       <td style={{ fontWeight: '700', color: '#10B981' }}>${Number(pedido.total || 0).toFixed(2)}</td>
                       <td>
                         {pedido.metodo_pago === 'transferencia' ? (
@@ -1493,6 +1522,7 @@ const AdminInterface: React.FC = () => {
                     <th>Cliente</th>
                     <th>Vendedor</th>
                     <th>Dirección</th>
+                    <th>Productos</th>
                     <th>Total</th>
                     <th>Pago</th>
                     <th>Estado</th>
@@ -1510,6 +1540,19 @@ const AdminInterface: React.FC = () => {
                         </span>
                       </td>
                       <td>{pedido.direccion_entrega || 'N/A'}</td>
+                      <td>
+                        {pedido.items && pedido.items.length > 0 ? (
+                          <div style={{ fontSize: '0.85rem' }}>
+                            {pedido.items.map((item: any, idx: number) => (
+                              <div key={idx} style={{ marginBottom: '4px' }}>
+                                {item.cantidad}x {item.producto_nombre}
+                              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <span style={{ color: '#94A3B8' }}>Sin productos</span>
+                        )}
+                      </td>
                       <td style={{ fontWeight: '700', color: '#10B981' }}>${Number(pedido.total || 0).toFixed(2)}</td>
                       <td>
                         {pedido.metodo_pago === 'transferencia' ? (
@@ -1567,6 +1610,7 @@ const AdminInterface: React.FC = () => {
                     <th>Vendedor</th>
                     <th>Dirección de Entrega</th>
                     <th>Teléfono</th>
+                    <th>Productos</th>
                     <th>Total</th>
                     <th>Pago</th>
                     <th>Fecha Pedido</th>
@@ -1580,6 +1624,19 @@ const AdminInterface: React.FC = () => {
                       <td>{pedido.vendedor_nombre || 'Sin asignar'}</td>
                       <td style={{ maxWidth: '200px', fontSize: '0.9rem' }}>{pedido.direccion_entrega || 'N/A'}</td>
                       <td>{pedido.telefono_contacto || 'N/A'}</td>
+                      <td>
+                        {pedido.items && pedido.items.length > 0 ? (
+                          <div style={{ fontSize: '0.85rem' }}>
+                            {pedido.items.map((item: any, idx: number) => (
+                              <div key={idx} style={{ marginBottom: '4px' }}>
+                                {item.cantidad}x {item.producto_nombre}
+                              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <span style={{ color: '#94A3B8' }}>Sin productos</span>
+                        )}
+                      </td>
                       <td style={{ fontWeight: '700', color: '#10B981' }}>${Number(pedido.total || 0).toFixed(2)}</td>
                       <td>
                         {pedido.metodo_pago === 'transferencia' ? (
