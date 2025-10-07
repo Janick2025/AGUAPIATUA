@@ -255,9 +255,25 @@ const AdminInterface: React.FC = () => {
 
         // Cargar pedidos
         const ordersData = await ApiService.getOrders();
-        console.log('Pedidos obtenidos:', ordersData);
+        console.log('📦 Pedidos básicos obtenidos:', ordersData);
 
-        setPedidos(ordersData.map((o: any) => ({
+        // Obtener detalles completos de cada pedido (incluyendo productos)
+        const detailedOrders = await Promise.all(
+          ordersData.map(async (o: any) => {
+            try {
+              const orderDetails = await ApiService.getOrder(o.id);
+              console.log(`📋 Detalles del pedido #${o.id}:`, orderDetails);
+              return orderDetails;
+            } catch (error) {
+              console.error(`Error obteniendo detalles del pedido ${o.id}:`, error);
+              return o; // Devolver orden básica si falla
+            }
+          })
+        );
+
+        console.log('✅ Todos los pedidos con detalles:', detailedOrders);
+
+        setPedidos(detailedOrders.map((o: any) => ({
           id: o.id,
           cliente_id: o.cliente_id,
           cliente_nombre: o.cliente_nombre || 'Cliente desconocido',
@@ -269,7 +285,8 @@ const AdminInterface: React.FC = () => {
           telefono_contacto: o.telefono_contacto || '',
           fecha_pedido: o.fecha_pedido || new Date().toISOString(),
           metodo_pago: o.metodo_pago || 'efectivo',
-          comprobante_pago: o.comprobante_pago || null
+          comprobante_pago: o.comprobante_pago || null,
+          items: o.items || []
         })));
       } catch (error) {
         console.error('Error loading data:', error);
