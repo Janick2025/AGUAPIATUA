@@ -405,12 +405,14 @@ const AdminInterface: React.FC = () => {
   const reloadOrders = async () => {
     try {
       const ordersData = await ApiService.getOrders();
+      console.log('📦 Pedidos básicos recibidos:', ordersData);
 
       // Obtener detalles completos de cada pedido (incluyendo productos)
       const detailedOrders = await Promise.all(
         ordersData.map(async (o: any) => {
           try {
             const orderDetails = await ApiService.getOrder(o.id);
+            console.log(`📋 Detalles del pedido #${o.id}:`, orderDetails);
             return orderDetails;
           } catch (error) {
             console.error(`Error obteniendo detalles del pedido ${o.id}:`, error);
@@ -418,6 +420,8 @@ const AdminInterface: React.FC = () => {
           }
         })
       );
+
+      console.log('✅ Todos los pedidos con detalles:', detailedOrders);
 
       setPedidos(detailedOrders.map((o: any) => ({
         id: o.id,

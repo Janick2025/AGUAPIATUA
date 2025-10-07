@@ -92,11 +92,12 @@ router.get('/:id', authenticate, async (req, res) => {
     if (req.user.tipo_usuario === 'Cliente' && orderDetails.cliente_id !== req.user.id) {
       return res.status(403).json({ error: 'No tienes permisos para ver este pedido' });
     }
-    
+
     if (req.user.tipo_usuario === 'Vendedor' && orderDetails.vendedor_id !== req.user.id) {
       return res.status(403).json({ error: 'No tienes permisos para ver este pedido' });
     }
 
+    // Admin puede ver todos los pedidos
     res.json(orderDetails);
   } catch (error) {
     console.error('Error obteniendo detalles del pedido:', error);
