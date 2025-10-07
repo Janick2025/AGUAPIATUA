@@ -135,13 +135,32 @@ export default function VendedorRepartidor() {
         const ordersData = await ApiService.getOrders();
         console.log('✅ Pedidos del vendedor recibidos:', ordersData);
 
+        // Obtener detalles completos de cada pedido (incluyendo productos)
+        const detailedOrders = await Promise.all(
+          ordersData.map(async (o: any) => {
+            try {
+              const orderDetails = await ApiService.getOrder(o.id);
+              return orderDetails;
+            } catch (error) {
+              console.error(`Error obteniendo detalles del pedido ${o.id}:`, error);
+              return o; // Devolver orden básica si falla
+            }
+          })
+        );
+
+        console.log('✅ Detalles completos de pedidos:', detailedOrders);
+
         // Mapear pedidos de la API al formato local
-        const mappedPedidos = ordersData.map((o: any) => ({
+        const mappedPedidos = detailedOrders.map((o: any) => ({
           id: o.id,
           cliente: o.cliente_nombre,
-          telefono: o.telefono_contacto,
+          telefono: o.telefono_contacto || o.cliente_telefono,
           direccion: o.direccion_entrega,
-          productos: [], // Los detalles de productos vendrían de otra llamada si es necesario
+          productos: o.items ? o.items.map((item: any) => ({
+            nombre: item.producto_nombre,
+            cantidad: item.cantidad,
+            precio: Number(item.precio_unitario)
+          })) : [],
           total: Number(o.total),
           hora_asignacion: new Date(o.fecha_pedido).toLocaleTimeString('es-EC', { hour: '2-digit', minute: '2-digit' }),
           hora_estimada: '-',
