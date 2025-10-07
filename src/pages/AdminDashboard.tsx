@@ -917,16 +917,57 @@ const AdminInterface: React.FC = () => {
             </span>
           </div>
           
-          <div style={{ 
-            padding: '16px', 
-            background: 'rgba(245, 158, 11, 0.1)', 
-            borderRadius: '12px', 
-            borderLeft: '4px solid #F59E0B' 
+          {/* Lista de productos con stock */}
+          <div style={{
+            padding: '16px',
+            background: 'rgba(59, 130, 246, 0.1)',
+            borderRadius: '12px',
+            borderLeft: '4px solid #3B82F6'
           }}>
-            <strong style={{ color: '#F59E0B' }}>⚠️ Stock bajo:</strong>
-            <span style={{ color: 'rgba(255, 255, 255, 0.8)', marginLeft: '8px' }}>
-              Agua Piatua 20L tiene solo 25 unidades
-            </span>
+            <strong style={{ color: '#3B82F6', marginBottom: '12px', display: 'block' }}>
+              📦 Inventario de Productos:
+            </strong>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              {productos.filter(p => p.activo).map((producto) => (
+                <div
+                  key={producto.id}
+                  style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    padding: '8px 12px',
+                    background: producto.stock <= 10 ? 'rgba(239, 68, 68, 0.15)' : 'rgba(255, 255, 255, 0.05)',
+                    borderRadius: '8px',
+                    border: producto.stock <= 10 ? '1px solid rgba(239, 68, 68, 0.3)' : 'none'
+                  }}
+                >
+                  <span style={{
+                    color: producto.stock <= 10 ? '#EF4444' : 'rgba(255, 255, 255, 0.8)',
+                    fontSize: '0.9rem',
+                    fontWeight: producto.stock <= 10 ? '600' : '400'
+                  }}>
+                    {producto.stock <= 10 && '⚠️ '}{producto.nombre}
+                  </span>
+                  <span style={{
+                    color: producto.stock <= 10 ? '#EF4444' : '#10B981',
+                    fontWeight: '700',
+                    fontSize: '1rem',
+                    background: producto.stock <= 10 ? 'rgba(239, 68, 68, 0.2)' : 'rgba(16, 185, 129, 0.1)',
+                    padding: '4px 12px',
+                    borderRadius: '6px',
+                    minWidth: '60px',
+                    textAlign: 'center'
+                  }}>
+                    {producto.stock} {producto.stock === 1 ? 'ud' : 'uds'}
+                  </span>
+                </div>
+              ))}
+              {productos.filter(p => p.activo).length === 0 && (
+                <span style={{ color: 'rgba(255, 255, 255, 0.5)', fontSize: '0.9rem' }}>
+                  No hay productos activos
+                </span>
+              )}
+            </div>
           </div>
           
           <div style={{ 
@@ -1853,10 +1894,307 @@ const AdminInterface: React.FC = () => {
               ))}
           </div>
         </div>
+
+        {/* Sección de descarga de reportes */}
+        <div style={{ marginTop: '32px' }}>
+          <h3 style={{ color: 'white', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <IonIcon icon={analyticsOutline} />
+            Descargar Reportes
+          </h3>
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '20px' }}>
+            {/* Reporte Diario */}
+            <div style={{
+              padding: '24px',
+              background: 'linear-gradient(135deg, rgba(59, 130, 246, 0.15), rgba(59, 130, 246, 0.05))',
+              borderRadius: '16px',
+              border: '1px solid rgba(59, 130, 246, 0.3)',
+              cursor: 'pointer',
+              transition: 'all 0.3s ease'
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.transform = 'translateY(-4px)';
+              e.currentTarget.style.boxShadow = '0 8px 24px rgba(59, 130, 246, 0.3)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.transform = 'translateY(0)';
+              e.currentTarget.style.boxShadow = 'none';
+            }}
+            onClick={() => {
+              const today = new Date().toISOString().split('T')[0];
+              const pedidosHoy = pedidos.filter(p => p.fecha_pedido.startsWith(today));
+              const totalVentas = pedidosHoy.reduce((sum, p) => sum + p.total, 0);
+
+              // Formato CSV mejorado con BOM para Excel y columnas bien alineadas
+              const csvRows = [
+                ['REPORTE DIARIO DE VENTAS'],
+                ['Fecha:', today],
+                [''],
+                ['RESUMEN'],
+                ['Total de Pedidos:', pedidosHoy.length],
+                ['Total de Ventas:', `$${totalVentas.toFixed(2)}`],
+                ['Promedio por Pedido:', `$${(totalVentas / pedidosHoy.length || 0).toFixed(2)}`],
+                [''],
+                ['DETALLE DE PEDIDOS'],
+                ['ID Pedido', 'Cliente', 'Teléfono', 'Dirección', 'Productos', 'Total', 'Estado', 'Método Pago', 'Fecha y Hora'],
+                ...pedidosHoy.map(p => [
+                  p.id,
+                  p.cliente_nombre,
+                  p.telefono_contacto || 'N/A',
+                  p.direccion_entrega || 'N/A',
+                  p.items ? p.items.map((item: any) => `${item.cantidad}x ${item.producto_nombre}`).join('; ') : 'Sin productos',
+                  `$${p.total.toFixed(2)}`,
+                  p.estado,
+                  p.metodo_pago === 'transferencia' ? 'Transferencia' : 'Efectivo',
+                  new Date(p.fecha_pedido).toLocaleString('es-EC')
+                ])
+              ];
+
+              // Convertir a CSV con BOM para que Excel lo abra correctamente
+              const csvContent = '\uFEFF' + csvRows.map(row => row.join(',')).join('\n');
+              const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+              const link = document.createElement('a');
+              link.href = URL.createObjectURL(blob);
+              link.download = `Reporte_Diario_${today}.csv`;
+              link.click();
+              showMessage('✅ Reporte diario descargado', 'success');
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px' }}>
+                <div style={{
+                  width: '48px',
+                  height: '48px',
+                  borderRadius: '12px',
+                  background: 'rgba(59, 130, 246, 0.2)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: '1.5rem'
+                }}>
+                  📅
+                </div>
+                <div>
+                  <h4 style={{ color: '#3B82F6', margin: 0, fontWeight: '700' }}>Reporte Diario</h4>
+                  <p style={{ color: 'rgba(255, 255, 255, 0.6)', margin: 0, fontSize: '0.85rem' }}>
+                    Ventas del día actual
+                  </p>
+                </div>
+              </div>
+              <div style={{ fontSize: '0.9rem', color: 'rgba(255, 255, 255, 0.8)', marginBottom: '12px' }}>
+                • Pedidos de hoy<br />
+                • Total de ventas<br />
+                • Detalle por pedido
+              </div>
+              <button className="admin-btn admin-btn-primary" style={{ width: '100%', marginTop: '12px' }}>
+                📥 Descargar CSV
+              </button>
+            </div>
+
+            {/* Reporte Mensual */}
+            <div style={{
+              padding: '24px',
+              background: 'linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(16, 185, 129, 0.05))',
+              borderRadius: '16px',
+              border: '1px solid rgba(16, 185, 129, 0.3)',
+              cursor: 'pointer',
+              transition: 'all 0.3s ease'
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.transform = 'translateY(-4px)';
+              e.currentTarget.style.boxShadow = '0 8px 24px rgba(16, 185, 129, 0.3)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.transform = 'translateY(0)';
+              e.currentTarget.style.boxShadow = 'none';
+            }}
+            onClick={() => {
+              const now = new Date();
+              const mesActual = now.getMonth();
+              const anioActual = now.getFullYear();
+              const pedidosMes = pedidos.filter(p => {
+                const fecha = new Date(p.fecha_pedido);
+                return fecha.getMonth() === mesActual && fecha.getFullYear() === anioActual;
+              });
+              const totalVentas = pedidosMes.reduce((sum, p) => sum + p.total, 0);
+              const meses = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+
+              // Formato CSV mejorado
+              const csvRows = [
+                ['REPORTE MENSUAL DE VENTAS'],
+                ['Período:', `${meses[mesActual]} ${anioActual}`],
+                [''],
+                ['RESUMEN'],
+                ['Total de Pedidos:', pedidosMes.length],
+                ['Total de Ventas:', `$${totalVentas.toFixed(2)}`],
+                ['Promedio por Pedido:', `$${(totalVentas / pedidosMes.length || 0).toFixed(2)}`],
+                [''],
+                ['DETALLE DE PEDIDOS'],
+                ['ID Pedido', 'Cliente', 'Teléfono', 'Dirección', 'Productos', 'Total', 'Estado', 'Método Pago', 'Vendedor', 'Fecha y Hora'],
+                ...pedidosMes.map(p => [
+                  p.id,
+                  p.cliente_nombre,
+                  p.telefono_contacto || 'N/A',
+                  p.direccion_entrega || 'N/A',
+                  p.items ? p.items.map((item: any) => `${item.cantidad}x ${item.producto_nombre}`).join('; ') : 'Sin productos',
+                  `$${p.total.toFixed(2)}`,
+                  p.estado,
+                  p.metodo_pago === 'transferencia' ? 'Transferencia' : 'Efectivo',
+                  p.vendedor_nombre || 'Sin asignar',
+                  new Date(p.fecha_pedido).toLocaleString('es-EC')
+                ])
+              ];
+
+              const csvContent = '\uFEFF' + csvRows.map(row => row.join(',')).join('\n');
+              const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+              const link = document.createElement('a');
+              link.href = URL.createObjectURL(blob);
+              link.download = `Reporte_Mensual_${meses[mesActual]}_${anioActual}.csv`;
+              link.click();
+              showMessage('✅ Reporte mensual descargado', 'success');
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px' }}>
+                <div style={{
+                  width: '48px',
+                  height: '48px',
+                  borderRadius: '12px',
+                  background: 'rgba(16, 185, 129, 0.2)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: '1.5rem'
+                }}>
+                  📊
+                </div>
+                <div>
+                  <h4 style={{ color: '#10B981', margin: 0, fontWeight: '700' }}>Reporte Mensual</h4>
+                  <p style={{ color: 'rgba(255, 255, 255, 0.6)', margin: 0, fontSize: '0.85rem' }}>
+                    Ventas del mes actual
+                  </p>
+                </div>
+              </div>
+              <div style={{ fontSize: '0.9rem', color: 'rgba(255, 255, 255, 0.8)', marginBottom: '12px' }}>
+                • Pedidos del mes<br />
+                • Total de ventas<br />
+                • Promedio por pedido
+              </div>
+              <button className="admin-btn admin-btn-primary" style={{ width: '100%', marginTop: '12px', background: '#10B981' }}>
+                📥 Descargar CSV
+              </button>
+            </div>
+
+            {/* Reporte Anual */}
+            <div style={{
+              padding: '24px',
+              background: 'linear-gradient(135deg, rgba(245, 158, 11, 0.15), rgba(245, 158, 11, 0.05))',
+              borderRadius: '16px',
+              border: '1px solid rgba(245, 158, 11, 0.3)',
+              cursor: 'pointer',
+              transition: 'all 0.3s ease'
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.transform = 'translateY(-4px)';
+              e.currentTarget.style.boxShadow = '0 8px 24px rgba(245, 158, 11, 0.3)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.transform = 'translateY(0)';
+              e.currentTarget.style.boxShadow = 'none';
+            }}
+            onClick={() => {
+              const anioActual = new Date().getFullYear();
+              const pedidosAnio = pedidos.filter(p => {
+                const fecha = new Date(p.fecha_pedido);
+                return fecha.getFullYear() === anioActual;
+              });
+              const totalVentas = pedidosAnio.reduce((sum, p) => sum + p.total, 0);
+
+              // Estadísticas por mes
+              const ventasPorMes = Array(12).fill(0);
+              const pedidosPorMes = Array(12).fill(0);
+              pedidosAnio.forEach(p => {
+                const mes = new Date(p.fecha_pedido).getMonth();
+                ventasPorMes[mes] += p.total;
+                pedidosPorMes[mes]++;
+              });
+
+              const meses = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+
+              // Formato CSV mejorado
+              const csvRows = [
+                ['REPORTE ANUAL DE VENTAS'],
+                ['Año:', anioActual],
+                [''],
+                ['RESUMEN GENERAL'],
+                ['Total de Pedidos:', pedidosAnio.length],
+                ['Total de Ventas:', `$${totalVentas.toFixed(2)}`],
+                ['Promedio por Pedido:', `$${(totalVentas / pedidosAnio.length || 0).toFixed(2)}`],
+                [''],
+                ['ESTADÍSTICAS POR MES'],
+                ['Mes', 'Pedidos', 'Ventas', 'Promedio'],
+                ...meses.map((mes, i) => [
+                  mes,
+                  pedidosPorMes[i],
+                  `$${ventasPorMes[i].toFixed(2)}`,
+                  pedidosPorMes[i] > 0 ? `$${(ventasPorMes[i] / pedidosPorMes[i]).toFixed(2)}` : '$0.00'
+                ]),
+                [''],
+                ['DETALLE DE TODOS LOS PEDIDOS'],
+                ['ID Pedido', 'Cliente', 'Teléfono', 'Dirección', 'Productos', 'Total', 'Estado', 'Método Pago', 'Vendedor', 'Fecha y Hora'],
+                ...pedidosAnio.map(p => [
+                  p.id,
+                  p.cliente_nombre,
+                  p.telefono_contacto || 'N/A',
+                  p.direccion_entrega || 'N/A',
+                  p.items ? p.items.map((item: any) => `${item.cantidad}x ${item.producto_nombre}`).join('; ') : 'Sin productos',
+                  `$${p.total.toFixed(2)}`,
+                  p.estado,
+                  p.metodo_pago === 'transferencia' ? 'Transferencia' : 'Efectivo',
+                  p.vendedor_nombre || 'Sin asignar',
+                  new Date(p.fecha_pedido).toLocaleString('es-EC')
+                ])
+              ];
+
+              const csvContent = '\uFEFF' + csvRows.map(row => row.join(',')).join('\n');
+              const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+              const link = document.createElement('a');
+              link.href = URL.createObjectURL(blob);
+              link.download = `Reporte_Anual_${anioActual}.csv`;
+              link.click();
+              showMessage('✅ Reporte anual descargado', 'success');
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px' }}>
+                <div style={{
+                  width: '48px',
+                  height: '48px',
+                  borderRadius: '12px',
+                  background: 'rgba(245, 158, 11, 0.2)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: '1.5rem'
+                }}>
+                  📈
+                </div>
+                <div>
+                  <h4 style={{ color: '#F59E0B', margin: 0, fontWeight: '700' }}>Reporte Anual</h4>
+                  <p style={{ color: 'rgba(255, 255, 255, 0.6)', margin: 0, fontSize: '0.85rem' }}>
+                    Ventas del año actual
+                  </p>
+                </div>
+              </div>
+              <div style={{ fontSize: '0.9rem', color: 'rgba(255, 255, 255, 0.8)', marginBottom: '12px' }}>
+                • Pedidos del año<br />
+                • Total de ventas<br />
+                • Promedio por pedido
+              </div>
+              <button className="admin-btn admin-btn-primary" style={{ width: '100%', marginTop: '12px', background: '#F59E0B' }}>
+                📥 Descargar CSV
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );
-  
+
   // Renderizar contenido según sección activa
   const renderContent = () => {
     switch (activeSection) {
