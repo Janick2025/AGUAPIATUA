@@ -453,7 +453,11 @@ class ApiService {
 
   // Sistema de Keep-Alive para evitar que Railway suspenda el servicio
   private startKeepAlive() {
-    // Hacer ping cada 4 minutos (Railway suspende después de ~5 min de inactividad)
+    // DESACTIVADO TEMPORALMENTE: Causaba rate limiting en Railway
+    // TODO: Reactivar cuando se tenga plan Pro de Railway
+    return;
+
+    // Hacer ping cada 8 minutos (más conservador para evitar rate limits)
     this.keepAliveInterval = window.setInterval(async () => {
       try {
         console.log('🏓 Keep-alive ping...');
@@ -462,7 +466,7 @@ class ApiService {
       } catch (error) {
         console.log('⚠️ Keep-alive falló (servidor puede estar iniciando)');
       }
-    }, 240000); // 4 minutos = 240000ms
+    }, 480000); // 8 minutos = 480000ms
 
     // Ping inicial después de 10 segundos
     setTimeout(async () => {
