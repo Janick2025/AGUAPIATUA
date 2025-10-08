@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  IonPage, 
-  IonHeader, 
-  IonToolbar, 
-  IonTitle, 
-  IonContent, 
+import {
+  IonPage,
+  IonHeader,
+  IonToolbar,
+  IonTitle,
+  IonContent,
   IonButton,
   IonSpinner,
   IonToast,
@@ -18,9 +18,11 @@ import {
   homeOutline,
   documentTextOutline,
   cloudUploadOutline,
-  arrowBackOutline
+  arrowBackOutline,
+  locateOutline
 } from 'ionicons/icons';
 import ApiService from '../services/apiService';
+import GeolocationService from '../services/geolocationService';
 import './FacturaFinal.css';
 
 // Tipos TypeScript
@@ -52,11 +54,12 @@ const FacturaFinal: React.FC<FacturaFinalProps> = (props) => {
   const [cart] = useState<CartItem[]>(props.cart || []);
   const [totalPrice] = useState(props.totalPrice || 0);
   const [isLoading, setIsLoading] = useState(false);
-  
+
   // Estados de UI
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
   const [showContent, setShowContent] = useState(false);
+  const [isLoadingLocation, setIsLoadingLocation] = useState(false);
   
   // Efecto de entrada y cargar teléfono
   useEffect(() => {
@@ -203,6 +206,30 @@ const FacturaFinal: React.FC<FacturaFinalProps> = (props) => {
     }
   };
 
+  // Obtener ubicación actual
+  const handleGetLocation = async () => {
+    if (!GeolocationService.isSupported()) {
+      setToastMessage('Tu navegador no soporta geolocalización');
+      setShowToast(true);
+      return;
+    }
+
+    setIsLoadingLocation(true);
+
+    try {
+      const { address } = await GeolocationService.getCurrentAddress();
+      setAddress(address.formatted);
+      setToastMessage('✅ Ubicación obtenida correctamente');
+      setShowToast(true);
+    } catch (error: any) {
+      console.error('Error al obtener ubicación:', error);
+      setToastMessage(error.message || 'Error al obtener ubicación');
+      setShowToast(true);
+    } finally {
+      setIsLoadingLocation(false);
+    }
+  };
+
   // Volver atrás
   const handleVolver = () => {
     if (props.onBack) {
@@ -295,16 +322,64 @@ const FacturaFinal: React.FC<FacturaFinalProps> = (props) => {
             </h2>
 
             <div className="input-group">
-              <input
-                type="text"
-                className="form-input"
-                placeholder="Ingresa tu dirección completa"
-                value={address}
-                onChange={(e) => setAddress(e.target.value)}
-                required
-              />
+              <div style={{ display: 'flex', gap: '8px' }}>
+                <input
+                  type="text"
+                  className="form-input"
+                  placeholder="Ingresa tu dirección completa"
+                  value={address}
+                  onChange={(e) => setAddress(e.target.value)}
+                  required
+                  style={{ flex: 1 }}
+                />
+                <button
+                  type="button"
+                  onClick={handleGetLocation}
+                  disabled={isLoadingLocation}
+                  style={{
+                    padding: '12px 16px',
+                    background: isLoadingLocation ? '#ccc' : '#3880ff',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '8px',
+                    cursor: isLoadingLocation ? 'not-allowed' : 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '4px',
+                    fontSize: '14px',
+                    fontWeight: '500',
+                    transition: 'all 0.3s ease',
+                    minWidth: '120px',
+                    justifyContent: 'center'
+                  }}
+                  onMouseOver={(e) => {
+                    if (!isLoadingLocation) {
+                      e.currentTarget.style.background = '#3171e0';
+                      e.currentTarget.style.transform = 'translateY(-1px)';
+                    }
+                  }}
+                  onMouseOut={(e) => {
+                    if (!isLoadingLocation) {
+                      e.currentTarget.style.background = '#3880ff';
+                      e.currentTarget.style.transform = 'translateY(0)';
+                    }
+                  }}
+                >
+                  {isLoadingLocation ? (
+                    <>
+                      <IonSpinner name="dots" style={{ width: '16px', height: '16px' }} />
+                      <span>Ubicando...</span>
+                    </>
+                  ) : (
+                    <>
+                      <IonIcon icon={locateOutline} style={{ fontSize: '18px' }} />
+                      <span>Mi ubicación</span>
+                    </>
+                  )}
+                </button>
+              </div>
               <span className="input-helper">
-                Incluye referencias y número de casa/departamento
+                📍 Usa el botón para obtener tu ubicación automáticamente, o escribe tu dirección
               </span>
             </div>
 
