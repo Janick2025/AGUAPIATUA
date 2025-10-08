@@ -54,10 +54,13 @@ app.use(helmet({
   crossOriginEmbedderPolicy: false
 }));
 
-// Rate limiting
+// Rate limiting - Configuración generosa para Railway Pro
 const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutos
-  max: 100 // límite de 100 requests por ventana de tiempo
+  windowMs: 1 * 60 * 1000, // 1 minuto
+  max: 1000, // 1000 requests por minuto (muy generoso)
+  message: 'Demasiadas peticiones desde esta IP, por favor intenta de nuevo más tarde.',
+  standardHeaders: true,
+  legacyHeaders: false,
 });
 app.use('/api/', limiter);
 
