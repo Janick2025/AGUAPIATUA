@@ -451,22 +451,19 @@ class ApiService {
     });
   }
 
-  // Sistema de Keep-Alive para evitar que Railway suspenda el servicio
+  // Sistema de Keep-Alive para Railway Pro
   private startKeepAlive() {
-    // DESACTIVADO TEMPORALMENTE: Causaba rate limiting en Railway
-    // TODO: Reactivar cuando se tenga plan Pro de Railway
-    return;
-
-    // Hacer ping cada 8 minutos (más conservador para evitar rate limits)
+    // Keep-alive cada 4 minutos para mantener servidor activo 24/7
+    // Railway Pro no tiene límites de rate, así que podemos ser más agresivos
     this.keepAliveInterval = window.setInterval(async () => {
       try {
         console.log('🏓 Keep-alive ping...');
         await this.healthCheck();
         console.log('✅ Servidor activo');
       } catch (error) {
-        console.log('⚠️ Keep-alive falló (servidor puede estar iniciando)');
+        console.log('⚠️ Keep-alive falló (reintentando en próximo ciclo)');
       }
-    }, 480000); // 8 minutos = 480000ms
+    }, 240000); // 4 minutos = 240000ms
 
     // Ping inicial después de 10 segundos
     setTimeout(async () => {
