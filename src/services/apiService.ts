@@ -3,9 +3,11 @@ class ApiService {
   // URL del backend desplegado en Railway (producción)
   private baseURL: string = 'https://aguapiatua-production.up.railway.app/api';
   private token: string | null = null;
+  private keepAliveInterval: number | null = null;
 
   constructor() {
     this.token = localStorage.getItem('aguapiatua_token');
+    this.startKeepAlive();
   }
 
   // Configurar token de autenticación
@@ -50,7 +52,7 @@ class ApiService {
       console.log(`📋 Config:`, JSON.stringify(config.headers));
 
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 segundos timeout
+      const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 segundos timeout (para cold starts)
 
       const response = await fetch(url, {
         ...config,
@@ -87,7 +89,7 @@ class ApiService {
 
       // Si es timeout
       if (error.name === 'AbortError') {
-        throw new Error('Tiempo de espera agotado. El servidor no responde.');
+        throw new Error('⏱️ Tiempo de espera agotado. El servidor puede estar iniciando (cold start). Intenta de nuevo en 10 segundos.');
       }
 
       // Si es un error de red (Failed to fetch)
@@ -447,6 +449,39 @@ class ApiService {
       method: 'POST',
       body: JSON.stringify({ fcm_token })
     });
+  }
+
+  // Sistema de Keep-Alive para evitar que Railway suspenda el servicio
+  private startKeepAlive() {
+    // Hacer ping cada 4 minutos (Railway suspende después de ~5 min de inactividad)
+    this.keepAliveInterval = window.setInterval(async () => {
+      try {
+        console.log('🏓 Keep-alive ping...');
+        await this.healthCheck();
+        console.log('✅ Servidor activo');
+      } catch (error) {
+        console.log('⚠️ Keep-alive falló (servidor puede estar iniciando)');
+      }
+    }, 240000); // 4 minutos = 240000ms
+
+    // Ping inicial después de 10 segundos
+    setTimeout(async () => {
+      try {
+        await this.healthCheck();
+        console.log('✅ Keep-alive iniciado');
+      } catch (error) {
+        console.log('⚠️ Keep-alive inicial falló');
+      }
+    }, 10000);
+  }
+
+  // Detener keep-alive (por si es necesario)
+  stopKeepAlive() {
+    if (this.keepAliveInterval) {
+      clearInterval(this.keepAliveInterval);
+      this.keepAliveInterval = null;
+      console.log('🛑 Keep-alive detenido');
+    }
   }
 }
 
