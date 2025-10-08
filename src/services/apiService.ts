@@ -451,6 +451,20 @@ class ApiService {
     });
   }
 
+  // Método para obtener estadísticas del dashboard
+  async getEstadisticasDashboard() {
+    return this.request<{
+      totalUsuarios: number;
+      totalProductos: number;
+      pedidosHoy: number;
+      ventasHoy: string;
+      crecimientoUsuarios: number;
+      crecimientoVentas: number;
+      pedidosAyer: number;
+      ventasAyer: string;
+    }>('/stats/dashboard');
+  }
+
   // Sistema de Keep-Alive para Railway Pro
   private startKeepAlive() {
     // Keep-alive cada 4 minutos para mantener servidor activo 24/7

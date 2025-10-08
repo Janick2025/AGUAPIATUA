@@ -17,6 +17,7 @@ const orderRoutes = require('./routes/orders');
 const deliveryRoutes = require('./routes/deliveries');
 const uploadRoutes = require('./routes/uploads');
 const adminRoutes = require('./routes/admin');
+const statsRoutes = require('./routes/stats');
 
 const app = express();
 
@@ -142,6 +143,7 @@ app.use('/api/orders', orderRoutes);
 app.use('/api/deliveries', deliveryRoutes);
 app.use('/api/uploads', uploadRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/stats', statsRoutes);
 
 // Ruta de salud
 app.get('/api/health', (req, res) => {

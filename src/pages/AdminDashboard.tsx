@@ -204,6 +204,16 @@ const AdminInterface: React.FC = () => {
   const [selectedPedidoId, setSelectedPedidoId] = useState<number | null>(null);
   const [selectedVendedorId, setSelectedVendedorId] = useState<number | null>(null);
   const [vendedoresDisponibles, setVendedoresDisponibles] = useState<any[]>([]);
+
+  // Estado para estadísticas del dashboard
+  const [estadisticas, setEstadisticas] = useState<Estadistica>({
+    totalUsuarios: 0,
+    totalProductos: 0,
+    pedidosHoy: 0,
+    ventasHoy: 0,
+    crecimientoUsuarios: 0,
+    crecimientoVentas: 0
+  });
   
   // Verificar autenticación y cargar datos
   useEffect(() => {
@@ -288,6 +298,20 @@ const AdminInterface: React.FC = () => {
           comprobante_pago: o.comprobante_pago || null,
           items: o.items || []
         })));
+
+        // Cargar estadísticas del dashboard
+        const statsData = await ApiService.getEstadisticasDashboard();
+        console.log('📊 Estadísticas obtenidas:', statsData);
+
+        setEstadisticas({
+          totalUsuarios: statsData.totalUsuarios,
+          totalProductos: statsData.totalProductos,
+          pedidosHoy: statsData.pedidosHoy,
+          ventasHoy: parseFloat(statsData.ventasHoy),
+          crecimientoUsuarios: statsData.crecimientoUsuarios,
+          crecimientoVentas: statsData.crecimientoVentas
+        });
+
       } catch (error) {
         console.error('Error loading data:', error);
         showMessage('Error al cargar datos', 'danger');
@@ -419,6 +443,25 @@ const AdminInterface: React.FC = () => {
   };
 
   // Función para recargar pedidos
+  // Función para recargar estadísticas
+  const reloadEstadisticas = async () => {
+    try {
+      const statsData = await ApiService.getEstadisticasDashboard();
+      console.log('📊 Estadísticas recargadas:', statsData);
+
+      setEstadisticas({
+        totalUsuarios: statsData.totalUsuarios,
+        totalProductos: statsData.totalProductos,
+        pedidosHoy: statsData.pedidosHoy,
+        ventasHoy: parseFloat(statsData.ventasHoy),
+        crecimientoUsuarios: statsData.crecimientoUsuarios,
+        crecimientoVentas: statsData.crecimientoVentas
+      });
+    } catch (error) {
+      console.error('Error recargando estadísticas:', error);
+    }
+  };
+
   const reloadOrders = async () => {
     try {
       const ordersData = await ApiService.getOrders();
@@ -455,21 +498,16 @@ const AdminInterface: React.FC = () => {
         comprobante_pago: o.comprobante_pago || null,
         items: o.items || []
       })));
+
+      // Recargar estadísticas también
+      await reloadEstadisticas();
     } catch (error) {
       console.error('Error recargando pedidos:', error);
       showMessage('Error al recargar pedidos', 'danger');
     }
   };
   
-  // Calcular estadísticas
-  const estadisticas: Estadistica = {
-    totalUsuarios: usuarios.length,
-    totalProductos: productos.length,
-    pedidosHoy: 23,
-    ventasHoy: 1240.50,
-    crecimientoUsuarios: 12.5,
-    crecimientoVentas: 8.3
-  };
+  // Calcular estadísticas (ya se cargan desde la API en useEffect)
   
   // Función para crear usuario
   const crearUsuario = async () => {
