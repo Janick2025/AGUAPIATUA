@@ -470,7 +470,7 @@ export default function Home() {
             }}>
               💧
             </div>
-            <h2>Cargando Agua Piatua...</h2>
+            <h2>Cargando AGUA CAMPOS...</h2>
           </div>
         </IonContent>
       </IonPage>
@@ -494,7 +494,7 @@ export default function Home() {
                 <IonIcon icon={logOutOutline} />
               </IonButton>
             </IonButtons>
-            <IonTitle>💧 Agua Piatua</IonTitle>
+            <IonTitle>💧 AGUA CAMPOS</IonTitle>
             <IonButtons slot="end">
               <IonButton fill="clear" onClick={() => setShowCart(true)} aria-label="Abrir carrito">
                 <IonIcon icon={cartOutline} />

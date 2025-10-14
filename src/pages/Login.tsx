@@ -343,7 +343,7 @@ export default function Login() {
             {/* Header con logo */}
             <div className="login-header">
               <div className="login-logo">💧</div>
-              <h1 className="login-title">Agua Piatua</h1>
+              <h1 className="login-title">AGUA CAMPOS</h1>
               <p className="login-subtitle">Accede a tu cuenta</p>
             </div>
 

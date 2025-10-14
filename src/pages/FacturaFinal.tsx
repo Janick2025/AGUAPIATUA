@@ -455,7 +455,7 @@ const FacturaFinal: React.FC<FacturaFinalProps> = (props) => {
                       <strong>Cuenta:</strong> 2100123456
                     </div>
                     <div className="bank-item">
-                      <strong>Titular:</strong> Agua Piatua S.A.
+                      <strong>Titular:</strong> AGUA CAMPOS S.A.
                     </div>
                     <div className="bank-item">
                       <strong>Monto:</strong> ${Number(totalPrice).toFixed(2)}

@@ -50,8 +50,8 @@ const pedidosAsignados: Pedido[] = [
     telefono: '+593 99 123 4567',
     direccion: 'Av. Principal 123, Centro, Quito',
     productos: [
-      { nombre: 'Agua Piatua 20L', cantidad: 2, precio: 2.50 },
-      { nombre: 'Agua Piatua 1L', cantidad: 6, precio: 1.00 }
+      { nombre: 'AGUA CAMPOS 20L', cantidad: 2, precio: 2.50 },
+      { nombre: 'AGUA CAMPOS 1L', cantidad: 6, precio: 1.00 }
     ],
     total: 11.00,
     hora_asignacion: '08:30',
@@ -66,7 +66,7 @@ const pedidosAsignados: Pedido[] = [
     telefono: '+593 98 765 4321',
     direccion: 'Calle Secundaria 456, Norte, Quito',
     productos: [
-      { nombre: 'Agua Piatua Six Pack', cantidad: 3, precio: 2.50 }
+      { nombre: 'AGUA CAMPOS Six Pack', cantidad: 3, precio: 2.50 }
     ],
     total: 7.50,
     hora_asignacion: '09:00',
@@ -80,7 +80,7 @@ const pedidosAsignados: Pedido[] = [
     telefono: '+593 97 234 5678',
     direccion: 'Sector Los Pinos, Mz. 5, Casa 12',
     productos: [
-      { nombre: 'Agua Piatua 20L', cantidad: 1, precio: 2.50 },
+      { nombre: 'AGUA CAMPOS 20L', cantidad: 1, precio: 2.50 },
       { nombre: 'Hielo en Cubos', cantidad: 2, precio: 1.80 }
     ],
     total: 6.10,
@@ -324,7 +324,7 @@ export default function VendedorRepartidor() {
             </IonButtons>
 
             <IonTitle>
-              🚚 Repartidor Agua Piatua
+              🚚 Repartidor AGUA CAMPOS
             </IonTitle>
 
             <IonButtons slot="end">

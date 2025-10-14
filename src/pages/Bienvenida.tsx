@@ -6,7 +6,7 @@ const Bienvenida: React.FC = () => {
   const history = useHistory();
 
   useEffect(() => {
-    // Mostrar "AGUA PIATUA" por 3 segundos y luego ir al login
+    // Mostrar "AGUA CAMPOS" por 3 segundos y luego ir al login
     const timer = setTimeout(() => {
       history.push('/login');
     }, 3000);
@@ -17,7 +17,7 @@ const Bienvenida: React.FC = () => {
   return (
     <div className="splash-screen">
       <div className="splash-logo">
-        💧 AGUA PIATUA
+        💧 AGUA CAMPOS
       </div>
     </div>
   );

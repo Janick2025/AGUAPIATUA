@@ -1,4 +1,4 @@
-// Servicio para comunicación con la API de Agua Piatua
+// Servicio para comunicación con la API de AGUA CAMPOS
 class ApiService {
   // URL del backend desplegado en Railway (producción)
   private baseURL: string = 'https://aguapiatua-production.up.railway.app/api';
