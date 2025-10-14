@@ -2266,7 +2266,7 @@ const AdminInterface: React.FC = () => {
             {/* Header del sidebar */}
             <div className="admin-sidebar-header">
               <div className="admin-logo">💧</div>
-              <div className="admin-brand">Agua Campos</div>
+              <div className="admin-brand">AGUA CAMPOS</div>
             </div>
             
             {/* Navegación */}
