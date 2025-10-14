@@ -15,11 +15,11 @@ async function enviarNotificacionNuevoPedido(pedido, cliente) {
     const mailOptions = {
       from: process.env.EMAIL_USER,
       to: process.env.ADMIN_EMAIL, // Email del administrador
-      subject: `🛒 Nuevo Pedido #${pedido.id} - Agua Piatua`,
+      subject: `🛒 Nuevo Pedido #${pedido.id} - AGUA CAMPOS`,
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
           <div style="background: linear-gradient(135deg, #0EA5E9, #38BDF8); padding: 20px; text-align: center;">
-            <h1 style="color: white; margin: 0;">💧 Agua Piatua</h1>
+            <h1 style="color: white; margin: 0;">💧 AGUA CAMPOS</h1>
             <h2 style="color: white; margin: 10px 0 0 0;">Nuevo Pedido Recibido</h2>
           </div>
 
@@ -55,7 +55,7 @@ async function enviarNotificacionNuevoPedido(pedido, cliente) {
           </div>
 
           <div style="background: #1e293b; padding: 15px; text-align: center; color: white;">
-            <p style="margin: 0; font-size: 0.9rem;">Agua Piatua - Sistema de Gestión de Pedidos</p>
+            <p style="margin: 0; font-size: 0.9rem;">AGUA CAMPOS - Sistema de Gestión de Pedidos</p>
           </div>
         </div>
       `
@@ -89,7 +89,7 @@ async function enviarNotificacionEstadoPedido(pedido, cliente, nuevoEstado) {
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
           <div style="background: linear-gradient(135deg, #0EA5E9, #38BDF8); padding: 20px; text-align: center;">
-            <h1 style="color: white; margin: 0;">💧 Agua Piatua</h1>
+            <h1 style="color: white; margin: 0;">💧 AGUA CAMPOS</h1>
             <h2 style="color: white; margin: 10px 0 0 0;">Actualización de tu Pedido</h2>
           </div>
 
@@ -106,7 +106,7 @@ async function enviarNotificacionEstadoPedido(pedido, cliente, nuevoEstado) {
             </div>
 
             <div style="text-align: center; margin-top: 20px;">
-              <p style="color: #666;">Gracias por confiar en Agua Piatua</p>
+              <p style="color: #666;">Gracias por confiar en AGUA CAMPOS</p>
             </div>
           </div>
         </div>

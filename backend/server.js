@@ -147,10 +147,10 @@ app.use('/api/stats', statsRoutes);
 
 // Ruta de salud
 app.get('/api/health', (req, res) => {
-  res.json({ 
-    status: 'OK', 
+  res.json({
+    status: 'OK',
     timestamp: new Date().toISOString(),
-    service: 'Agua Piatua API'
+    service: 'AGUA CAMPOS API'
   });
 });
 
@@ -185,7 +185,7 @@ app.use((error, req, res, next) => {
 
 // Iniciar servidor con Socket.IO
 server.listen(PORT, () => {
-  console.log(`🚀 Servidor Agua Piatua API ejecutándose en puerto ${PORT}`);
+  console.log(`🚀 Servidor AGUA CAMPOS API ejecutándose en puerto ${PORT}`);
   console.log(`📊 Entorno: ${process.env.NODE_ENV || 'development'}`);
   console.log(`🔗 Health check: http://localhost:${PORT}/api/health`);
   console.log(`⚡ Socket.IO habilitado para notificaciones en tiempo real`);

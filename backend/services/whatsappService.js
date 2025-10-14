@@ -9,7 +9,7 @@ const client = twilio(
 // Función para enviar notificación de nuevo pedido por WhatsApp
 async function enviarWhatsAppNuevoPedido(pedido, cliente) {
   try {
-    const mensaje = `🛒 *NUEVO PEDIDO - Agua Piatua*
+    const mensaje = `🛒 *NUEVO PEDIDO - AGUA CAMPOS*
 
 📋 *Pedido:* #${pedido.id}
 
@@ -61,7 +61,7 @@ async function enviarWhatsAppEstadoPedido(pedido, cliente, nuevoEstado) {
       'Cancelado': 'Cancelado'
     };
 
-    const mensaje = `${estadosEmoji[nuevoEstado]} *Agua Piatua - Actualización de Pedido*
+    const mensaje = `${estadosEmoji[nuevoEstado]} *AGUA CAMPOS - Actualización de Pedido*
 
 Hola *${cliente.nombre}*,
 
@@ -104,7 +104,7 @@ Cualquier duda, contáctanos.`;
 // Función para enviar confirmación de pedido al cliente
 async function enviarWhatsAppConfirmacionPedido(pedido, cliente) {
   try {
-    const mensaje = `✅ *Pedido Confirmado - Agua Piatua*
+    const mensaje = `✅ *Pedido Confirmado - AGUA CAMPOS*
 
 Hola *${cliente.nombre}*,
 
