@@ -405,4 +405,97 @@ router.patch('/:id/status', authenticate, async (req, res) => {
   }
 });
 
+// DELETE /api/orders/:id - Eliminar pedido (Solo Admin)
+router.delete('/:id', authenticate, authorize('Admin'), async (req, res) => {
+  try {
+    const orderId = parseInt(req.params.id);
+
+    if (isNaN(orderId)) {
+      return res.status(400).json({ error: 'ID de pedido inválido' });
+    }
+
+    // Verificar que el pedido existe
+    const orderDetails = await db.getOrderDetails(orderId);
+    if (!orderDetails) {
+      return res.status(404).json({ error: 'Pedido no encontrado' });
+    }
+
+    // Eliminar items del pedido primero (por foreign key)
+    await db.query('DELETE FROM order_items WHERE order_id = ?', [orderId]);
+
+    // Eliminar entregas asociadas
+    await db.query('DELETE FROM deliveries WHERE order_id = ?', [orderId]);
+
+    // Eliminar el pedido
+    await db.query('DELETE FROM orders WHERE id = ?', [orderId]);
+
+    // Emitir notificación de eliminación
+    if (req.io) {
+      req.io.emit('order_deleted', {
+        orderId,
+        timestamp: new Date()
+      });
+      console.log(`📢 Notificación de pedido eliminado enviada (ID: ${orderId})`);
+    }
+
+    res.json({
+      message: 'Pedido eliminado exitosamente',
+      orderId
+    });
+
+  } catch (error) {
+    console.error('Error eliminando pedido:', error);
+    res.status(500).json({ error: 'Error interno del servidor' });
+  }
+});
+
+// DELETE /api/orders - Eliminar múltiples pedidos (Solo Admin)
+router.delete('/', authenticate, authorize('Admin'), async (req, res) => {
+  try {
+    const { ids } = req.body;
+
+    if (!Array.isArray(ids) || ids.length === 0) {
+      return res.status(400).json({ error: 'Debe proporcionar un array de IDs' });
+    }
+
+    // Validar que todos sean números
+    const validIds = ids.filter(id => !isNaN(parseInt(id))).map(id => parseInt(id));
+
+    if (validIds.length === 0) {
+      return res.status(400).json({ error: 'No se proporcionaron IDs válidos' });
+    }
+
+    const placeholders = validIds.map(() => '?').join(',');
+
+    // Eliminar items de los pedidos
+    await db.query(`DELETE FROM order_items WHERE order_id IN (${placeholders})`, validIds);
+
+    // Eliminar entregas asociadas
+    await db.query(`DELETE FROM deliveries WHERE order_id IN (${placeholders})`, validIds);
+
+    // Eliminar los pedidos
+    const result = await db.query(`DELETE FROM orders WHERE id IN (${placeholders})`, validIds);
+
+    // Emitir notificación de eliminación múltiple
+    if (req.io) {
+      req.io.emit('orders_deleted', {
+        orderIds: validIds,
+        count: validIds.length,
+        timestamp: new Date()
+      });
+      console.log(`📢 Notificación de ${validIds.length} pedidos eliminados enviada`);
+    }
+
+    res.json({
+      message: `${validIds.length} pedido(s) eliminado(s) exitosamente`,
+      deletedIds: validIds,
+      count: validIds.length
+    });
+
+  } catch (error) {
+    console.error('Error eliminando pedidos:', error);
+    res.status(500).json({ error: 'Error interno del servidor' });
+  }
+});
+
 module.exports = router;

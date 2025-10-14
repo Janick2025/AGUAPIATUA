@@ -205,6 +205,9 @@ const AdminInterface: React.FC = () => {
   const [selectedVendedorId, setSelectedVendedorId] = useState<number | null>(null);
   const [vendedoresDisponibles, setVendedoresDisponibles] = useState<any[]>([]);
 
+  // Estados para eliminación de pedidos
+  const [selectedOrders, setSelectedOrders] = useState<number[]>([]);
+
   // Estado para estadísticas del dashboard
   const [estadisticas, setEstadisticas] = useState<Estadistica>({
     totalUsuarios: 0,
@@ -1461,6 +1464,76 @@ const AdminInterface: React.FC = () => {
     const pedidosAsignados = pedidos.filter(p => p.vendedor_id && p.estado !== 'Entregado');
     const pedidosEntregados = pedidos.filter(p => p.estado === 'Entregado');
 
+    const handleOrderCheckbox = (orderId: number) => {
+      setSelectedOrders(prev =>
+        prev.includes(orderId)
+          ? prev.filter(id => id !== orderId)
+          : [...prev, orderId]
+      );
+    };
+
+    const eliminarPedido = async (pedidoId: number) => {
+      setAlertConfig({
+        header: 'Confirmar Eliminación',
+        message: `¿Estás seguro de que deseas eliminar el pedido #${pedidoId}?`,
+        buttons: [
+          {
+            text: 'Cancelar',
+            role: 'cancel',
+            cssClass: 'alert-button-cancel'
+          },
+          {
+            text: 'Eliminar',
+            cssClass: 'alert-button-confirm',
+            handler: async () => {
+              try {
+                await ApiService.deleteOrder(pedidoId);
+                await reloadOrders();
+                showMessage('Pedido eliminado exitosamente', 'success');
+                setSelectedOrders(prev => prev.filter(id => id !== pedidoId));
+              } catch (error: any) {
+                console.error('Error eliminando pedido:', error);
+                showMessage(error.message || 'Error al eliminar pedido', 'danger');
+              }
+            }
+          }
+        ]
+      });
+      setShowAlert(true);
+    };
+
+    const eliminarPedidosSeleccionados = async () => {
+      if (selectedOrders.length === 0) return;
+
+      setAlertConfig({
+        header: 'Confirmar Eliminación',
+        message: `¿Estás seguro de que deseas eliminar ${selectedOrders.length} pedido(s)?`,
+        buttons: [
+          {
+            text: 'Cancelar',
+            role: 'cancel',
+            cssClass: 'alert-button-cancel'
+          },
+          {
+            text: 'Eliminar',
+            cssClass: 'alert-button-confirm',
+            handler: async () => {
+              try {
+                await ApiService.deleteOrders(selectedOrders);
+                await reloadOrders();
+                showMessage(`${selectedOrders.length} pedido(s) eliminado(s) exitosamente`, 'success');
+                setSelectedOrders([]);
+              } catch (error: any) {
+                console.error('Error eliminando pedidos:', error);
+                showMessage(error.message || 'Error al eliminar pedidos', 'danger');
+              }
+            }
+          }
+        ]
+      });
+      setShowAlert(true);
+    };
+
     const asignarPedidoAVendedor = async (pedidoId: number) => {
       try {
         const vendedoresData = await ApiService.getVendedores();
@@ -1514,6 +1587,19 @@ const AdminInterface: React.FC = () => {
             </h2>
           </div>
 
+          {selectedOrders.length > 0 && (
+            <div style={{ padding: '0 24px 16px 24px' }}>
+              <button
+                className="admin-btn admin-btn-danger"
+                onClick={eliminarPedidosSeleccionados}
+                style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
+              >
+                <IonIcon icon={trashOutline} />
+                Eliminar Seleccionados ({selectedOrders.length})
+              </button>
+            </div>
+          )}
+
           {pedidosPendientes.length === 0 ? (
             <div style={{ textAlign: 'center', padding: '40px', color: 'rgba(255, 255, 255, 0.7)' }}>
               <IonIcon icon={checkmarkCircleOutline} style={{ fontSize: '64px', opacity: 0.3, marginBottom: '16px' }} />
@@ -1524,6 +1610,19 @@ const AdminInterface: React.FC = () => {
               <table className="admin-table">
                 <thead>
                   <tr>
+                    <th style={{ width: '40px' }}>
+                      <input
+                        type="checkbox"
+                        checked={pedidosPendientes.every(p => selectedOrders.includes(p.id))}
+                        onChange={(e) => {
+                          if (e.target.checked) {
+                            setSelectedOrders(prev => [...new Set([...prev, ...pedidosPendientes.map(p => p.id)])]);
+                          } else {
+                            setSelectedOrders(prev => prev.filter(id => !pedidosPendientes.map(p => p.id).includes(id)));
+                          }
+                        }}
+                      />
+                    </th>
                     <th>ID</th>
                     <th>Cliente</th>
                     <th>Teléfono</th>
@@ -1539,6 +1638,13 @@ const AdminInterface: React.FC = () => {
                 <tbody>
                   {pedidosPendientes.map(pedido => (
                     <tr key={pedido.id}>
+                      <td>
+                        <input
+                          type="checkbox"
+                          checked={selectedOrders.includes(pedido.id)}
+                          onChange={() => handleOrderCheckbox(pedido.id)}
+                        />
+                      </td>
                       <td>#{pedido.id}</td>
                       <td style={{ fontWeight: '600' }}>{pedido.cliente_nombre || 'N/A'}</td>
                       <td>{pedido.telefono_contacto || 'N/A'}</td>
@@ -1584,13 +1690,22 @@ const AdminInterface: React.FC = () => {
                         </span>
                       </td>
                       <td>
-                        <button
-                          className="admin-btn admin-btn-primary"
-                          onClick={() => asignarPedidoAVendedor(pedido.id)}
-                        >
-                          <IonIcon icon={personCircleOutline} />
-                          Asignar Vendedor
-                        </button>
+                        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                          <button
+                            className="admin-btn admin-btn-primary"
+                            onClick={() => asignarPedidoAVendedor(pedido.id)}
+                          >
+                            <IonIcon icon={personCircleOutline} />
+                            Asignar Vendedor
+                          </button>
+                          <button
+                            className="admin-btn admin-btn-danger"
+                            onClick={() => eliminarPedido(pedido.id)}
+                            style={{ minWidth: 'auto', padding: '8px 12px' }}
+                          >
+                            <IonIcon icon={trashOutline} />
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))}
@@ -1609,6 +1724,19 @@ const AdminInterface: React.FC = () => {
             </h2>
           </div>
 
+          {selectedOrders.length > 0 && (
+            <div style={{ padding: '0 24px 16px 24px' }}>
+              <button
+                className="admin-btn admin-btn-danger"
+                onClick={eliminarPedidosSeleccionados}
+                style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
+              >
+                <IonIcon icon={trashOutline} />
+                Eliminar Seleccionados ({selectedOrders.length})
+              </button>
+            </div>
+          )}
+
           {pedidosAsignados.length === 0 ? (
             <div style={{ textAlign: 'center', padding: '40px', color: 'rgba(255, 255, 255, 0.7)' }}>
               <p>No hay pedidos en proceso</p>
@@ -1618,6 +1746,19 @@ const AdminInterface: React.FC = () => {
               <table className="admin-table">
                 <thead>
                   <tr>
+                    <th style={{ width: '40px' }}>
+                      <input
+                        type="checkbox"
+                        checked={pedidosAsignados.every(p => selectedOrders.includes(p.id))}
+                        onChange={(e) => {
+                          if (e.target.checked) {
+                            setSelectedOrders(prev => [...new Set([...prev, ...pedidosAsignados.map(p => p.id)])]);
+                          } else {
+                            setSelectedOrders(prev => prev.filter(id => !pedidosAsignados.map(p => p.id).includes(id)));
+                          }
+                        }}
+                      />
+                    </th>
                     <th>ID</th>
                     <th>Cliente</th>
                     <th>Vendedor</th>
@@ -1627,11 +1768,19 @@ const AdminInterface: React.FC = () => {
                     <th>Pago</th>
                     <th>Estado</th>
                     <th>Fecha</th>
+                    <th>Acciones</th>
                   </tr>
                 </thead>
                 <tbody>
                   {pedidosAsignados.map(pedido => (
                     <tr key={pedido.id}>
+                      <td>
+                        <input
+                          type="checkbox"
+                          checked={selectedOrders.includes(pedido.id)}
+                          onChange={() => handleOrderCheckbox(pedido.id)}
+                        />
+                      </td>
                       <td>#{pedido.id}</td>
                       <td style={{ fontWeight: '600' }}>{pedido.cliente_nombre || 'N/A'}</td>
                       <td>
@@ -1679,6 +1828,15 @@ const AdminInterface: React.FC = () => {
                         </span>
                       </td>
                       <td>{new Date(pedido.fecha_pedido).toLocaleString('es-EC')}</td>
+                      <td>
+                        <button
+                          className="admin-btn admin-btn-danger"
+                          onClick={() => eliminarPedido(pedido.id)}
+                          style={{ minWidth: 'auto', padding: '8px 12px' }}
+                        >
+                          <IonIcon icon={trashOutline} />
+                        </button>
+                      </td>
                     </tr>
                   ))}
                 </tbody>
@@ -1696,6 +1854,19 @@ const AdminInterface: React.FC = () => {
             </h2>
           </div>
 
+          {selectedOrders.length > 0 && (
+            <div style={{ padding: '0 24px 16px 24px' }}>
+              <button
+                className="admin-btn admin-btn-danger"
+                onClick={eliminarPedidosSeleccionados}
+                style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
+              >
+                <IonIcon icon={trashOutline} />
+                Eliminar Seleccionados ({selectedOrders.length})
+              </button>
+            </div>
+          )}
+
           {pedidosEntregados.length === 0 ? (
             <div style={{ textAlign: 'center', padding: '40px', color: 'rgba(255, 255, 255, 0.7)' }}>
               <p>No hay pedidos entregados</p>
@@ -1705,6 +1876,19 @@ const AdminInterface: React.FC = () => {
               <table className="admin-table">
                 <thead>
                   <tr>
+                    <th style={{ width: '40px' }}>
+                      <input
+                        type="checkbox"
+                        checked={pedidosEntregados.every(p => selectedOrders.includes(p.id))}
+                        onChange={(e) => {
+                          if (e.target.checked) {
+                            setSelectedOrders(prev => [...new Set([...prev, ...pedidosEntregados.map(p => p.id)])]);
+                          } else {
+                            setSelectedOrders(prev => prev.filter(id => !pedidosEntregados.map(p => p.id).includes(id)));
+                          }
+                        }}
+                      />
+                    </th>
                     <th>ID</th>
                     <th>Cliente</th>
                     <th>Vendedor</th>
@@ -1714,11 +1898,19 @@ const AdminInterface: React.FC = () => {
                     <th>Total</th>
                     <th>Pago</th>
                     <th>Fecha Pedido</th>
+                    <th>Acciones</th>
                   </tr>
                 </thead>
                 <tbody>
                   {pedidosEntregados.map(pedido => (
                     <tr key={pedido.id}>
+                      <td>
+                        <input
+                          type="checkbox"
+                          checked={selectedOrders.includes(pedido.id)}
+                          onChange={() => handleOrderCheckbox(pedido.id)}
+                        />
+                      </td>
                       <td>#{pedido.id}</td>
                       <td>{pedido.cliente_nombre || 'N/A'}</td>
                       <td>{pedido.vendedor_nombre || 'Sin asignar'}</td>
@@ -1758,6 +1950,15 @@ const AdminInterface: React.FC = () => {
                         )}
                       </td>
                       <td>{new Date(pedido.fecha_pedido).toLocaleString('es-EC')}</td>
+                      <td>
+                        <button
+                          className="admin-btn admin-btn-danger"
+                          onClick={() => eliminarPedido(pedido.id)}
+                          style={{ minWidth: 'auto', padding: '8px 12px' }}
+                        >
+                          <IonIcon icon={trashOutline} />
+                        </button>
+                      </td>
                     </tr>
                   ))}
                 </tbody>

@@ -282,6 +282,26 @@ class ApiService {
     });
   }
 
+  async deleteOrder(orderId: number) {
+    return this.request<{
+      message: string;
+      orderId: number;
+    }>(`/orders/${orderId}`, {
+      method: 'DELETE',
+    });
+  }
+
+  async deleteOrders(orderIds: number[]) {
+    return this.request<{
+      message: string;
+      deletedIds: number[];
+      count: number;
+    }>('/orders', {
+      method: 'DELETE',
+      body: JSON.stringify({ ids: orderIds }),
+    });
+  }
+
   // Métodos de entregas
   async getDeliveries() {
     return this.request<any[]>('/deliveries');
