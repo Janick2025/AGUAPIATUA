@@ -30,7 +30,16 @@
       "Bash(git commit:*)",
       "Bash(start /B node:*)",
       "WebFetch(domain:railway.app)",
-      "Bash(git rm:*)"
+      "Bash(git rm:*)",
+      "Bash(ping:*)",
+      "Bash(git reset:*)",
+      "WebFetch(domain:railway.com)",
+      "Read(//d/**)",
+      "Bash(exit)",
+      "Bash(cat:*)",
+      "WebFetch(domain:docs.railway.com)",
+      "WebFetch(domain:aguacampos-app.vercel.app)",
+      "WebFetch(domain:aguapiatua.vercel.app)"
     ],
     "deny": [],
     "ask": []
