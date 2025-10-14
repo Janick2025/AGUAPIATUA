@@ -1,12 +1,12 @@
 // Servicio para comunicación con la API de AGUA CAMPOS
 class ApiService {
   // URL del backend desplegado en Railway (producción)
-  private baseURL: string = 'https://aguapiatua-production.up.railway.app/api';
+  private baseURL: string = 'https://aguacampos-production.up.railway.app/api';
   private token: string | null = null;
   private keepAliveInterval: number | null = null;
 
   constructor() {
-    this.token = localStorage.getItem('aguapiatua_token');
+    this.token = localStorage.getItem('aguacampos_token');
     this.startKeepAlive();
   }
 
@@ -14,9 +14,9 @@ class ApiService {
   setToken(token: string | null) {
     this.token = token;
     if (token) {
-      localStorage.setItem('aguapiatua_token', token);
+      localStorage.setItem('aguacampos_token', token);
     } else {
-      localStorage.removeItem('aguapiatua_token');
+      localStorage.removeItem('aguacampos_token');
     }
   }
 
@@ -27,7 +27,7 @@ class ApiService {
     };
 
     // Obtener el token más reciente de localStorage
-    const currentToken = localStorage.getItem('aguapiatua_token');
+    const currentToken = localStorage.getItem('aguacampos_token');
     if (currentToken) {
       this.token = currentToken;
       headers['Authorization'] = `Bearer ${currentToken}`;
@@ -173,7 +173,7 @@ class ApiService {
 
   logout() {
     this.setToken(null);
-    localStorage.removeItem('aguapiatua_user');
+    localStorage.removeItem('aguacampos_user');
   }
 
   // Métodos de productos
@@ -387,7 +387,7 @@ class ApiService {
     }
 
     const url = `${this.baseURL}/uploads/comprobante`;
-    const currentToken = localStorage.getItem('aguapiatua_token');
+    const currentToken = localStorage.getItem('aguacampos_token');
 
     try {
       console.log(`📤 POST ${url}`);

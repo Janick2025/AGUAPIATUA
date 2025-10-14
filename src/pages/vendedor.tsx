@@ -131,7 +131,7 @@ export default function VendedorRepartidor() {
     const loadPedidos = async () => {
       try {
         console.log('Cargando pedidos del vendedor...');
-        console.log('Token:', localStorage.getItem('aguapiatua_token'));
+        console.log('Token:', localStorage.getItem('aguacampos_token'));
         const ordersData = await ApiService.getOrders();
         console.log('✅ Pedidos del vendedor recibidos:', ordersData);
 

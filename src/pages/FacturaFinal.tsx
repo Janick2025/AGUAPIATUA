@@ -66,7 +66,7 @@ const FacturaFinal: React.FC<FacturaFinalProps> = (props) => {
     const timer = setTimeout(() => setShowContent(true), 300);
 
     // Cargar teléfono del usuario desde localStorage
-    const userData = JSON.parse(localStorage.getItem('aguapiatua_user') || '{}');
+    const userData = JSON.parse(localStorage.getItem('aguacampos_user') || '{}');
     if (userData.telefono) {
       setTelefono(userData.telefono);
     }

@@ -79,8 +79,8 @@ export default function Login() {
     if (googleToken && userData) {
       try {
         const user = JSON.parse(decodeURIComponent(userData));
-        localStorage.setItem('aguapiatua_token', googleToken);
-        localStorage.setItem('aguapiatua_user', JSON.stringify(user));
+        localStorage.setItem('aguacampos_token', googleToken);
+        localStorage.setItem('aguacampos_user', JSON.stringify(user));
         localStorage.setItem('isAuthenticated', 'true');
 
         // Normalizar tipo de usuario
@@ -159,9 +159,9 @@ export default function Login() {
     try {
       // Llamar a la API para autenticar
       const response = await ApiService.login(email, password);
-      
+
       // Guardar datos de sesión
-      localStorage.setItem('aguapiatua_user', JSON.stringify(response.user));
+      localStorage.setItem('aguacampos_user', JSON.stringify(response.user));
       localStorage.setItem('isAuthenticated', 'true');
       localStorage.setItem('userId', response.user.id.toString());
       localStorage.setItem('username', response.user.nombre);
@@ -230,7 +230,7 @@ export default function Login() {
       });
 
       // Guardar datos de sesión
-      localStorage.setItem('aguapiatua_user', JSON.stringify(response.user));
+      localStorage.setItem('aguacampos_user', JSON.stringify(response.user));
       localStorage.setItem('isAuthenticated', 'true');
       localStorage.setItem('userId', response.user.id.toString());
       localStorage.setItem('username', response.user.nombre);
@@ -276,7 +276,7 @@ export default function Login() {
         const result = await GoogleAuth.signIn();
 
         // Enviar al backend para crear/buscar usuario
-        const response = await fetch('https://aguapiatua-production.up.railway.app/api/auth/google/mobile', {
+        const response = await fetch('https://aguacampos-production.up.railway.app/api/auth/google/mobile', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -289,8 +289,8 @@ export default function Login() {
         const data = await response.json();
 
         if (data.token && data.user) {
-          localStorage.setItem('aguapiatua_token', data.token);
-          localStorage.setItem('aguapiatua_user', JSON.stringify(data.user));
+          localStorage.setItem('aguacampos_token', data.token);
+          localStorage.setItem('aguacampos_user', JSON.stringify(data.user));
           localStorage.setItem('isAuthenticated', 'true');
           localStorage.setItem('userId', data.user.id.toString());
           localStorage.setItem('username', data.user.nombre);
@@ -317,7 +317,7 @@ export default function Login() {
         }
       } else {
         // Login web (OAuth redirect)
-        window.location.href = 'https://aguapiatua-production.up.railway.app/api/auth/google';
+        window.location.href = 'https://aguacampos-production.up.railway.app/api/auth/google';
       }
     } catch (error: any) {
       console.error('Error en login de Google:', error);

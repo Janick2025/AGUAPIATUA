@@ -93,7 +93,7 @@ export default function Home() {
   const [showProductModal, setShowProductModal] = useState(false);
 
   // Datos del usuario (desde localStorage)
-  const userData = JSON.parse(localStorage.getItem('aguapiatua_user') || '{}');
+  const userData = JSON.parse(localStorage.getItem('aguacampos_user') || '{}');
   const userName = userData.nombre || 'Usuario';
 
   // Cálculos optimizados con useMemo

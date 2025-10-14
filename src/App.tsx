@@ -19,7 +19,7 @@ const ProtectedRoute: React.FC<{
   redirectTo?: string;
 }> = ({ children, allowedUserTypes = [], redirectTo = '/login' }) => {
   const isAuthenticated = localStorage.getItem('isAuthenticated') === 'true';
-  const token = localStorage.getItem('aguapiatua_token');
+  const token = localStorage.getItem('aguacampos_token');
   const userType = localStorage.getItem('userType') || '';
 
   // Si no hay autenticación básica, redirigir al login
