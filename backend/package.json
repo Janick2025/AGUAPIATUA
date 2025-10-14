@@ -1,7 +1,7 @@
 {
-  "name": "agua-piatua-backend",
+  "name": "aguacampos-backend",
   "version": "1.0.0",
-  "description": "Backend API para la aplicación de delivery de agua Piatua",
+  "description": "Backend API para la aplicación de delivery de AGUA CAMPOS",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
@@ -38,6 +38,6 @@
     "express",
     "api"
   ],
-  "author": "Agua Piatua Team",
+  "author": "AGUA CAMPOS Team",
   "license": "ISC"
 }

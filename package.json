@@ -1,7 +1,7 @@
 {
-  "name": "mi-ionic-capacitor-app",
+  "name": "aguacampos-app",
   "private": true,
-  "version": "0.0.1",
+  "version": "1.0.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -57,5 +57,5 @@
   "overrides": {
     "rollup": "4.44.0"
   },
-  "description": "An Ionic project"
+  "description": "AGUA CAMPOS - Aplicación de delivery de agua"
 }
