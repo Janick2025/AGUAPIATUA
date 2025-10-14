@@ -71,7 +71,7 @@ const usuariosIniciales: Usuario[] = [
   {
     id: 1,
     username: 'vendedor1',
-    email: 'vendedor1@aguapiatua.com',
+    email: 'vendedor1@aguacampos.com',
     tipo: 'vendedor',
     fechaCreacion: '2024-01-15',
     estado: 'activo',
@@ -89,7 +89,7 @@ const usuariosIniciales: Usuario[] = [
   {
     id: 3,
     username: 'vendedor2',
-    email: 'vendedor2@aguapiatua.com',
+    email: 'vendedor2@aguacampos.com',
     tipo: 'vendedor',
     fechaCreacion: '2024-03-05',
     estado: 'inactivo',
@@ -100,7 +100,7 @@ const usuariosIniciales: Usuario[] = [
 const productosIniciales: Producto[] = [
   {
     id: 1,
-    nombre: 'Agua Piatua 500ml',
+    nombre: 'AGUA CAMPOS 500ml',
     precio: 0.50,
     descripcion: 'Agua purificada de 500ml, perfecta para llevar',
     imagen: 'agua.jpg',
@@ -112,7 +112,7 @@ const productosIniciales: Producto[] = [
   },
   {
     id: 2,
-    nombre: 'Agua Piatua 1L',
+    nombre: 'AGUA CAMPOS 1L',
     precio: 1.00,
     descripcion: 'Agua purificada de 1 litro, ideal para el hogar',
     imagen: 'litro.jpg',
@@ -124,7 +124,7 @@ const productosIniciales: Producto[] = [
   },
   {
     id: 3,
-    nombre: 'Agua Piatua Six Pack',
+    nombre: 'AGUA CAMPOS Six Pack',
     precio: 2.50,
     descripcion: 'Pack de 6 botellas de 500ml',
     imagen: 'Six_Pag.jpg',
@@ -136,7 +136,7 @@ const productosIniciales: Producto[] = [
   },
   {
     id: 4,
-    nombre: 'Agua Piatua 20L',
+    nombre: 'AGUA CAMPOS 20L',
     precio: 2.50,
     descripcion: 'Garrafa de 20 litros para dispensador',
     imagen: 'garrafon.png',
@@ -951,7 +951,7 @@ const AdminInterface: React.FC = () => {
           }}>
             <strong style={{ color: '#3B82F6' }}>📦 Producto actualizado:</strong>
             <span style={{ color: 'rgba(255, 255, 255, 0.8)', marginLeft: '8px' }}>
-              Stock de Agua Piatua 1L actualizado
+              Stock de AGUA CAMPOS 1L actualizado
             </span>
           </div>
           
@@ -1016,7 +1016,7 @@ const AdminInterface: React.FC = () => {
           }}>
             <strong style={{ color: '#EF4444' }}>🛑 Producto desactivado:</strong>
             <span style={{ color: 'rgba(255, 255, 255, 0.8)', marginLeft: '8px' }}>
-              Agua Piatua 20L fue desactivado temporalmente
+              AGUA CAMPOS 20L fue desactivado temporalmente
             </span>
           </div>
         </div>
@@ -1060,7 +1060,7 @@ const AdminInterface: React.FC = () => {
                 className="admin-form-input"
                 value={nuevoUsuario.email}
                 onChange={(e) => setNuevoUsuario({...nuevoUsuario, email: e.target.value})}
-                placeholder="usuario@aguapiatua.com"
+                placeholder="usuario@aguacampos.com"
                 required
               />
             </div>
@@ -1238,7 +1238,7 @@ const AdminInterface: React.FC = () => {
                 className="admin-form-input"
                 value={nuevoProducto.nombre}
                 onChange={(e) => setNuevoProducto({...nuevoProducto, nombre: e.target.value})}
-                placeholder="Ej: Agua Piatua 2L"
+                placeholder="Ej: AGUA CAMPOS 2L"
                 required
               />
             </div>
@@ -2266,7 +2266,7 @@ const AdminInterface: React.FC = () => {
             {/* Header del sidebar */}
             <div className="admin-sidebar-header">
               <div className="admin-logo">💧</div>
-              <div className="admin-brand">Agua Piatua</div>
+              <div className="admin-brand">Agua Campos</div>
             </div>
             
             {/* Navegación */}

@@ -68,7 +68,7 @@ class GeolocationService {
         `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}&zoom=18&addressdetails=1`,
         {
           headers: {
-            'User-Agent': 'AguaPiatuaApp/1.0'
+            'User-Agent': 'AguaCamposApp/1.0'
           }
         }
       );
