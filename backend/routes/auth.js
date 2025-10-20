@@ -16,13 +16,24 @@ if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
     callbackURL: process.env.GOOGLE_CALLBACK_URL
   }, async (accessToken, refreshToken, profile, done) => {
     try {
+      console.log('Google OAuth Profile:', JSON.stringify(profile, null, 2));
+
+      // Validar que el perfil tenga email
+      if (!profile.emails || !profile.emails[0] || !profile.emails[0].value) {
+        console.error('Error: No se recibió email del perfil de Google');
+        return done(new Error('No se recibió email del perfil de Google'), null);
+      }
+
       const email = profile.emails[0].value;
-      const nombre = profile.displayName;
+      const nombre = profile.displayName || profile.name?.givenName || email.split('@')[0];
+
+      console.log('Procesando usuario:', { email, nombre });
 
       // Buscar si el usuario ya existe
       let user = await db.getUserByEmail(email);
 
       if (!user) {
+        console.log('Usuario no existe, creando nuevo usuario...');
         // Crear nuevo usuario
         const userId = await db.createUser({
           nombre,
@@ -33,10 +44,14 @@ if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
           direccion: null
         });
         user = await db.getUserById(userId);
+        console.log('Usuario creado exitosamente:', user.id);
+      } else {
+        console.log('Usuario existente encontrado:', user.id);
       }
 
       return done(null, user);
     } catch (error) {
+      console.error('Error en Google OAuth callback:', error);
       return done(error, null);
     }
   }));
@@ -209,14 +224,31 @@ router.get('/google', passport.authenticate('google', {
 
 // GET /api/auth/google/callback - Callback de Google
 router.get('/google/callback',
-  passport.authenticate('google', { session: false, failureRedirect: process.env.FRONTEND_URL + '/login' }),
+  passport.authenticate('google', {
+    session: false,
+    failureRedirect: process.env.FRONTEND_URL + '/login?error=auth_failed'
+  }),
   (req, res) => {
     try {
+      console.log('Callback recibido, usuario autenticado:', req.user ? req.user.email : 'NO USER');
+
+      if (!req.user) {
+        console.error('Error: No se recibió usuario del passport authenticate');
+        return res.redirect(process.env.FRONTEND_URL + '/login?error=no_user');
+      }
+
       // Generar token JWT
       const token = generateToken(req.user);
+      console.log('Token JWT generado exitosamente');
+
+      // Preparar datos del usuario sin la contraseña
+      const { password, ...userWithoutPassword } = req.user;
 
       // Redirigir al frontend con el token
-      res.redirect(`${process.env.FRONTEND_URL}/login?google_token=${token}&user=${encodeURIComponent(JSON.stringify(req.user))}`);
+      const redirectUrl = `${process.env.FRONTEND_URL}/login?google_token=${token}&user=${encodeURIComponent(JSON.stringify(userWithoutPassword))}`;
+      console.log('Redirigiendo a:', process.env.FRONTEND_URL);
+
+      res.redirect(redirectUrl);
     } catch (error) {
       console.error('Error en callback de Google:', error);
       res.redirect(process.env.FRONTEND_URL + '/login?error=google_auth_failed');
