@@ -268,12 +268,15 @@ export default function Login() {
   // Login con Google
   const handleGoogleLogin = async () => {
     try {
+      console.log('Iniciando login con Google...');
       setIsLoading(true);
 
       // Verificar si es móvil nativo o web
       if (isPlatform('capacitor')) {
+        console.log('Plataforma: Capacitor (móvil)');
         // Login nativo para móvil
         const result = await GoogleAuth.signIn();
+        console.log('Google Auth result:', result);
 
         // Enviar al backend para crear/buscar usuario
         const response = await fetch('https://aguacampos-production.up.railway.app/api/auth/google/mobile', {
@@ -286,7 +289,14 @@ export default function Login() {
           })
         });
 
+        console.log('Response status:', response.status);
         const data = await response.json();
+        console.log('Response data:', data);
+
+        if (data.error) {
+          showMessage(data.error, 'danger');
+          return;
+        }
 
         if (data.token && data.user) {
           localStorage.setItem('aguacampos_token', data.token);
@@ -316,12 +326,15 @@ export default function Login() {
           }, 1000);
         }
       } else {
+        console.log('Plataforma: Web - Redirigiendo a Google OAuth...');
         // Login web (OAuth redirect)
         window.location.href = 'https://aguacampos-production.up.railway.app/api/auth/google';
       }
     } catch (error: any) {
-      console.error('Error en login de Google:', error);
-      showMessage('Error al iniciar sesión con Google', 'danger');
+      console.error('Error completo en login de Google:', error);
+      console.error('Error message:', error.message);
+      console.error('Error stack:', error.stack);
+      showMessage(error.message || 'Error al iniciar sesión con Google', 'danger');
     } finally {
       setIsLoading(false);
     }
