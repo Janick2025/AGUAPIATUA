@@ -162,7 +162,7 @@ export default function VendedorRepartidor() {
             precio: Number(item.precio_unitario)
           })) : [],
           total: Number(o.total),
-          hora_asignacion: new Date(o.fecha_pedido).toLocaleTimeString('es-EC', { hour: '2-digit', minute: '2-digit' }),
+          hora_asignacion: new Date(o.fecha_pedido).toLocaleTimeString('es-EC', { hour: '2-digit', minute: '2-digit', hour12: false }),
           hora_estimada: '-',
           estado: o.estado === 'En_Camino' ? 'en_ruta' :
                  o.estado === 'Entregado' ? 'entregado' :

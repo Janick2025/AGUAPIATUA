@@ -1682,7 +1682,14 @@ const AdminInterface: React.FC = () => {
                           <span className="admin-badge admin-badge-secondary">Efectivo</span>
                         )}
                       </td>
-                      <td>{new Date(pedido.fecha_pedido).toLocaleString('es-EC')}</td>
+                      <td>{new Date(pedido.fecha_pedido).toLocaleString('es-EC', { 
+                        year: 'numeric', 
+                        month: '2-digit', 
+                        day: '2-digit', 
+                        hour: '2-digit', 
+                        minute: '2-digit', 
+                        hour12: false 
+                      })}</td>
                       <td>
                         <span className="admin-badge admin-badge-warning">
                           <IonIcon icon={timeOutline} />
@@ -1827,7 +1834,14 @@ const AdminInterface: React.FC = () => {
                           {pedido.estado}
                         </span>
                       </td>
-                      <td>{new Date(pedido.fecha_pedido).toLocaleString('es-EC')}</td>
+                      <td>{new Date(pedido.fecha_pedido).toLocaleString('es-EC', { 
+                        year: 'numeric', 
+                        month: '2-digit', 
+                        day: '2-digit', 
+                        hour: '2-digit', 
+                        minute: '2-digit', 
+                        hour12: false 
+                      })}</td>
                       <td>
                         <button
                           className="admin-btn admin-btn-danger"
@@ -1949,7 +1963,14 @@ const AdminInterface: React.FC = () => {
                           <span className="admin-badge admin-badge-secondary">Efectivo</span>
                         )}
                       </td>
-                      <td>{new Date(pedido.fecha_pedido).toLocaleString('es-EC')}</td>
+                      <td>{new Date(pedido.fecha_pedido).toLocaleString('es-EC', { 
+                        year: 'numeric', 
+                        month: '2-digit', 
+                        day: '2-digit', 
+                        hour: '2-digit', 
+                        minute: '2-digit', 
+                        hour12: false 
+                      })}</td>
                       <td>
                         <button
                           className="admin-btn admin-btn-danger"
@@ -2185,7 +2206,14 @@ const AdminInterface: React.FC = () => {
                   `$${p.total.toFixed(2)}`,
                   p.estado,
                   p.metodo_pago === 'transferencia' ? 'Transferencia' : 'Efectivo',
-                  new Date(p.fecha_pedido).toLocaleString('es-EC')
+                  new Date(p.fecha_pedido).toLocaleString('es-EC', { 
+                    year: 'numeric', 
+                    month: '2-digit', 
+                    day: '2-digit', 
+                    hour: '2-digit', 
+                    minute: '2-digit', 
+                    hour12: false 
+                  })
                 ])
               ];
 
@@ -2278,7 +2306,14 @@ const AdminInterface: React.FC = () => {
                   p.estado,
                   p.metodo_pago === 'transferencia' ? 'Transferencia' : 'Efectivo',
                   p.vendedor_nombre || 'Sin asignar',
-                  new Date(p.fecha_pedido).toLocaleString('es-EC')
+                  new Date(p.fecha_pedido).toLocaleString('es-EC', { 
+                    year: 'numeric', 
+                    month: '2-digit', 
+                    day: '2-digit', 
+                    hour: '2-digit', 
+                    minute: '2-digit', 
+                    hour12: false 
+                  })
                 ])
               ];
 
@@ -2387,7 +2422,14 @@ const AdminInterface: React.FC = () => {
                   p.estado,
                   p.metodo_pago === 'transferencia' ? 'Transferencia' : 'Efectivo',
                   p.vendedor_nombre || 'Sin asignar',
-                  new Date(p.fecha_pedido).toLocaleString('es-EC')
+                  new Date(p.fecha_pedido).toLocaleString('es-EC', { 
+                    year: 'numeric', 
+                    month: '2-digit', 
+                    day: '2-digit', 
+                    hour: '2-digit', 
+                    minute: '2-digit', 
+                    hour12: false 
+                  })
                 ])
               ];
 
